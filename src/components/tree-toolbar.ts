@@ -125,10 +125,6 @@ export class TreeToolbar {
       } else {
         this.callbacks.onExpandToDepth(depth);
       }
-      // Reset dropdown to show it's a one-time action
-      setTimeout(() => {
-        depthDropdown.value = "1";
-      }, 100);
     });
   }
 

@@ -112,9 +112,11 @@ export class TreeComponent {
     // Create header
     const header = nodeEl.createDiv("tree-node-header");
 
-    // Add collapse icon (only if has children)
-    const hasChildren = node.children.length > 0;
-    if (hasChildren) {
+    // Check if node has visible children (excluding files if they're hidden)
+    const hasVisibleChildren = this.hasVisibleChildren(node);
+
+    // Add collapse icon (only if has visible children)
+    if (hasVisibleChildren) {
       const collapseIcon = header.createSpan("tree-collapse-icon");
 
       // Use Obsidian's built-in icons
@@ -161,13 +163,13 @@ export class TreeComponent {
     header.addEventListener("click", () => {
       if (node.type === "file" && node.files[0]) {
         this.openFile(node.files[0]);
-      } else if (hasChildren) {
+      } else if (hasVisibleChildren) {
         this.toggleNode(node.id);
       }
     });
 
     // Render children if expanded
-    if (isExpanded && hasChildren) {
+    if (isExpanded && hasVisibleChildren) {
       const childrenContainer = nodeEl.createDiv("tree-node-children");
 
       node.children.forEach((child) => {
@@ -176,6 +178,23 @@ export class TreeComponent {
     }
 
     return nodeEl;
+  }
+
+  /**
+   * Check if a node has visible children (considering file visibility setting)
+   */
+  private hasVisibleChildren(node: TreeNode): boolean {
+    if (node.children.length === 0) {
+      return false;
+    }
+
+    // If showing files, any children count as visible
+    if (this.showFiles) {
+      return true;
+    }
+
+    // If not showing files, check if there are any non-file children
+    return node.children.some(child => child.type !== "file");
   }
 
   /**

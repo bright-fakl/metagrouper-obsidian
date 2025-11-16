@@ -1,11 +1,20 @@
 import { App, Plugin, PluginManifest, WorkspaceLeaf } from "obsidian";
 import { TagTreeView, VIEW_TYPE_TAG_TREE } from "./view";
+import {
+  TagTreeSettings,
+  DEFAULT_SETTINGS,
+} from "./settings/plugin-settings";
 
 export default class TagTreePlugin extends Plugin {
+  settings!: TagTreeSettings;
+
   async onload() {
+    // Load settings
+    await this.loadSettings();
+
     this.registerView(
       VIEW_TYPE_TAG_TREE,
-      (leaf: WorkspaceLeaf) => new TagTreeView(leaf)
+      (leaf: WorkspaceLeaf) => new TagTreeView(leaf, this)
     );
 
     this.addRibbonIcon("tree-deciduous", "Open Tag Tree", () => {
@@ -31,5 +40,13 @@ export default class TagTreePlugin extends Plugin {
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE)[0]
     );
+  }
+
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
   }
 }

@@ -26,8 +26,12 @@ export class TreeComponent {
   // DOM element cache for smart updates
   private nodeElements: Map<string, HTMLElement> = new Map();
 
-  constructor(app: App) {
+  // State change callback
+  private onStateChange?: () => void;
+
+  constructor(app: App, onStateChange?: () => void) {
     this.app = app;
+    this.onStateChange = onStateChange;
   }
 
   /**
@@ -205,6 +209,9 @@ export class TreeComponent {
 
     // Smart update: only update the affected node
     this.updateNodeElement(nodeId);
+
+    // Notify state change
+    this.onStateChange?.();
   }
 
   /**
@@ -374,6 +381,8 @@ export class TreeComponent {
     if (this.currentTree) {
       this.render(this.currentTree, this.container);
     }
+    // Notify state change
+    this.onStateChange?.();
   }
 
   /**
@@ -385,6 +394,8 @@ export class TreeComponent {
       if (this.currentTree) {
         this.render(this.currentTree, this.container);
       }
+      // Notify state change
+      this.onStateChange?.();
     }
   }
 

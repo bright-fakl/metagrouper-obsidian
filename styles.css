@@ -186,3 +186,92 @@
     padding: 4px 6px;
   }
 }
+
+/* ========================================
+   Phase 2.2: Toolbar Styles
+   ======================================== */
+
+/* Toolbar container */
+.tag-tree-toolbar-container {
+  padding: 8px 8px 4px 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  background-color: var(--background-primary);
+}
+
+/* Toolbar */
+.tag-tree-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Toolbar section (for grouping controls) */
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Toolbar label */
+.toolbar-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Toolbar icon */
+.toolbar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.toolbar-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Toolbar dropdown */
+.toolbar-dropdown {
+  flex: 1;
+  padding: 2px 6px;
+  font-size: var(--font-ui-smaller);
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.toolbar-dropdown:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.toolbar-dropdown:focus {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: -1px;
+  border-color: var(--interactive-accent);
+}
+
+/* Tree content container (below toolbar) */
+.tag-tree-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Dark theme adjustments for toolbar */
+.theme-dark .toolbar-dropdown {
+  background-color: var(--background-primary-alt);
+}
+
+/* Light theme adjustments for toolbar */
+.theme-light .toolbar-dropdown {
+  background-color: var(--background-primary);
+}

@@ -1,5 +1,6 @@
 import { App, TFile, setIcon } from "obsidian";
 import { TreeNode } from "../types/tree-node";
+import { SortMode } from "../types/view-state";
 
 /**
  * TreeComponent - Renders and manages the collapsible tree UI
@@ -7,7 +8,7 @@ import { TreeNode } from "../types/tree-node";
  * Responsibilities:
  * - Render tree nodes with collapse/expand icons
  * - Handle click events for navigation and toggling
- * - Maintain UI state (expanded/collapsed nodes, file visibility)
+ * - Maintain UI state (expanded/collapsed nodes, file visibility, sort mode)
  * - Support smart partial DOM updates
  */
 export class TreeComponent {
@@ -18,6 +19,7 @@ export class TreeComponent {
   // UI state
   private expandedNodes: Set<string> = new Set();
   private showFiles: boolean = true;
+  private sortMode: SortMode = "alpha-asc";
   private hasInitializedExpansion: boolean = false;
 
   // Configuration
@@ -427,6 +429,24 @@ export class TreeComponent {
     this.expandedNodes = nodes;
     if (this.currentTree) {
       this.render(this.currentTree, this.container);
+    }
+  }
+
+  /**
+   * Get current sort mode (for state persistence)
+   */
+  getSortMode(): SortMode {
+    return this.sortMode;
+  }
+
+  /**
+   * Set sort mode (for state restoration)
+   */
+  setSortMode(mode: SortMode): void {
+    if (this.sortMode !== mode) {
+      this.sortMode = mode;
+      // Notify state change
+      this.onStateChange?.();
     }
   }
 }

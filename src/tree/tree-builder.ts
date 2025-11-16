@@ -1,6 +1,7 @@
 import { TFile } from "obsidian";
 import { VaultIndexer } from "../indexer/vault-indexer";
 import { TreeNode, createTagNode, createFileNode } from "../types/tree-node";
+import { SortMode } from "../types/view-state";
 
 /**
  * TreeBuilder - Transforms flat tag index into hierarchical tree structure
@@ -9,7 +10,7 @@ import { TreeNode, createTagNode, createFileNode } from "../types/tree-node";
  * - Transform flat tag index into hierarchical tree structure
  * - Support filtering by root tag
  * - Generate tree nodes with metadata (file count, children)
- * - Sort nodes alphabetically
+ * - Sort nodes according to specified sort mode
  */
 export class TreeBuilder {
   constructor(private indexer: VaultIndexer) {}
@@ -18,9 +19,10 @@ export class TreeBuilder {
    * Build a tree from nested tags
    *
    * @param rootTag - Optional root tag to filter by (e.g., "project" will show only tags under #project)
+   * @param sortMode - Sort mode to apply to tree nodes (default: "alpha-asc")
    * @returns Root tree node with hierarchical structure
    */
-  buildFromTags(rootTag?: string): TreeNode {
+  buildFromTags(rootTag?: string, sortMode: SortMode = "alpha-asc"): TreeNode {
     // Get all tags (filtered by root if specified)
     const allTags = rootTag
       ? this.indexer.getNestedTagsUnder(rootTag)
@@ -70,8 +72,8 @@ export class TreeBuilder {
     // Add file nodes to leaf tag nodes
     this.addFileNodes(nodeMap);
 
-    // Sort all children alphabetically
-    this.sortTreeRecursive(root);
+    // Sort all children according to sort mode
+    this.sortTreeRecursive(root, sortMode);
 
     // Calculate aggregate file counts
     this.calculateFileCounts(root);
@@ -152,19 +154,28 @@ export class TreeBuilder {
   }
 
   /**
-   * Sort tree nodes alphabetically (recursive)
+   * Sort tree nodes according to sort mode (recursive)
    *
    * @param node - Node whose children should be sorted
+   * @param sortMode - Sort mode to apply
    */
-  private sortTreeRecursive(node: TreeNode): void {
+  private sortTreeRecursive(node: TreeNode, sortMode: SortMode): void {
     if (node.children.length === 0) {
       return;
     }
 
-    // Sort children alphabetically by name
-    // Tag nodes first, then file nodes, each sorted alphabetically
+    // Skip sorting if mode is "none"
+    if (sortMode === "none") {
+      // Still need to recursively process children
+      for (const child of node.children) {
+        this.sortTreeRecursive(child, sortMode);
+      }
+      return;
+    }
+
+    // Sort children according to mode
     node.children.sort((a, b) => {
-      // Tags before files
+      // Always keep tag/property nodes before file nodes
       if (a.type !== "file" && b.type === "file") {
         return -1;
       }
@@ -172,16 +183,54 @@ export class TreeBuilder {
         return 1;
       }
 
-      // Alphabetical within same type
-      return a.name.localeCompare(b.name, undefined, {
-        numeric: true,
-        sensitivity: "base",
-      });
+      // Apply sort mode
+      switch (sortMode) {
+        case "alpha-asc":
+          return a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+
+        case "alpha-desc":
+          return b.name.localeCompare(a.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+
+        case "count-desc":
+          // More files first
+          if (a.fileCount !== b.fileCount) {
+            return b.fileCount - a.fileCount;
+          }
+          // Tie-breaker: alphabetical
+          return a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+
+        case "count-asc":
+          // Fewer files first
+          if (a.fileCount !== b.fileCount) {
+            return a.fileCount - b.fileCount;
+          }
+          // Tie-breaker: alphabetical
+          return a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+
+        default:
+          // Default to alphabetical
+          return a.name.localeCompare(b.name, undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+      }
     });
 
     // Recursively sort children
     for (const child of node.children) {
-      this.sortTreeRecursive(child);
+      this.sortTreeRecursive(child, sortMode);
     }
   }
 }

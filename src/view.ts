@@ -2,7 +2,8 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { VaultIndexer } from "./indexer/vault-indexer";
 import { TreeBuilder } from "./tree/tree-builder";
 import { TreeComponent } from "./components/tree-component";
-import { ViewState } from "./types/view-state";
+import { TreeToolbar } from "./components/tree-toolbar";
+import { ViewState, SortMode } from "./types/view-state";
 import type TagTreePlugin from "./main";
 
 export const VIEW_TYPE_TAG_TREE = "tag-tree-view";
@@ -11,6 +12,7 @@ export class TagTreeView extends ItemView {
   private indexer!: VaultIndexer;
   private treeBuilder!: TreeBuilder;
   private treeComponent!: TreeComponent;
+  private toolbar!: TreeToolbar;
   private plugin: TagTreePlugin;
 
   // State management
@@ -44,14 +46,13 @@ export class TagTreeView extends ItemView {
       this.indexer = new VaultIndexer(this.app);
       await this.indexer.initialize();
 
-      // Build tree
+      // Build tree builder
       this.treeBuilder = new TreeBuilder(this.indexer);
-      const tree = this.treeBuilder.buildFromTags();
 
       // Remove loading indicator
       loadingEl.remove();
 
-      // Render tree UI
+      // Create tree component
       this.treeComponent = new TreeComponent(this.app, () => {
         this.saveViewState();
       });
@@ -59,7 +60,27 @@ export class TagTreeView extends ItemView {
       // Restore saved state before rendering
       this.restoreViewState();
 
-      this.treeComponent.render(tree, container);
+      // Create and render toolbar
+      const toolbarContainer = container.createDiv("tag-tree-toolbar-container");
+      this.toolbar = new TreeToolbar(
+        {
+          onSortChange: (mode: SortMode) => {
+            this.handleSortChange(mode);
+          },
+        },
+        this.treeComponent.getSortMode()
+      );
+      this.toolbar.render(toolbarContainer);
+
+      // Create tree container
+      const treeContainer = container.createDiv("tag-tree-content");
+
+      // Build and render tree with current sort mode
+      const tree = this.treeBuilder.buildFromTags(
+        undefined,
+        this.treeComponent.getSortMode()
+      );
+      this.treeComponent.render(tree, treeContainer);
 
       // Register event listener for index updates
       this.registerEvent(
@@ -91,6 +112,32 @@ export class TagTreeView extends ItemView {
   }
 
   /**
+   * Handle sort mode change from toolbar
+   */
+  private handleSortChange(mode: SortMode): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Update tree component sort mode
+    this.treeComponent.setSortMode(mode);
+
+    // Rebuild tree with new sort mode
+    const tree = this.treeBuilder.buildFromTags(undefined, mode);
+
+    // Re-render tree
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.treeComponent.render(tree, container);
+    }
+
+    // Save state
+    this.saveViewState();
+  }
+
+  /**
    * Refresh the tree when the index is updated
    */
   private refreshTree(): void {
@@ -98,12 +145,19 @@ export class TagTreeView extends ItemView {
       return;
     }
 
-    // Rebuild tree
-    const tree = this.treeBuilder.buildFromTags();
+    // Rebuild tree with current sort mode
+    const tree = this.treeBuilder.buildFromTags(
+      undefined,
+      this.treeComponent.getSortMode()
+    );
 
     // Re-render with preserved state
-    const container = this.containerEl.children[1] as HTMLElement;
-    this.treeComponent.render(tree, container);
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.treeComponent.render(tree, container);
+    }
   }
 
   /**
@@ -133,7 +187,7 @@ export class TagTreeView extends ItemView {
     const state: ViewState = {
       expandedNodes: Array.from(this.treeComponent.getExpandedNodes()),
       showFiles: this.treeComponent.getFileVisibility(),
-      sortMode: "none", // Will be used in Phase 2.2
+      sortMode: this.treeComponent.getSortMode(),
     };
 
     this.plugin.settings.viewStates[this.viewStateKey] = state;
@@ -163,6 +217,9 @@ export class TagTreeView extends ItemView {
       this.treeComponent.setFileVisibility(state.showFiles);
     }
 
-    // Sort mode will be restored in Phase 2.2
+    // Restore sort mode
+    if (state.sortMode) {
+      this.treeComponent.setSortMode(state.sortMode);
+    }
   }
 }

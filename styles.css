@@ -188,7 +188,7 @@
 }
 
 /* ========================================
-   Phase 2.2: Toolbar Styles
+   Phase 2.2 & 2.3: Toolbar Styles
    ======================================== */
 
 /* Toolbar container */
@@ -203,6 +203,14 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* Toolbar row (for organizing controls in rows) */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Toolbar section (for grouping controls) */
@@ -273,5 +281,121 @@
 
 /* Light theme adjustments for toolbar */
 .theme-light .toolbar-dropdown {
+  background-color: var(--background-primary);
+}
+
+/* ========================================
+   Phase 2.3: Toolbar Buttons and Toggles
+   ======================================== */
+
+/* Toolbar button (for Collapse All, Expand All) */
+.toolbar-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: var(--font-ui-smaller);
+  background-color: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  color: var(--text-normal);
+  cursor: pointer;
+  transition: all 0.1s;
+  white-space: nowrap;
+}
+
+.toolbar-button:hover {
+  background-color: var(--interactive-hover);
+}
+
+.toolbar-button:active {
+  background-color: var(--interactive-active);
+}
+
+.toolbar-button:focus {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: -1px;
+}
+
+/* Toolbar button icon */
+.toolbar-button-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+}
+
+.toolbar-button-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Toolbar button text */
+.toolbar-button-text {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-normal);
+}
+
+/* Toolbar toggle (for Show Files) */
+.toolbar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  background-color: var(--background-modifier-border);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toolbar-toggle:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.toolbar-toggle:focus {
+  outline: 2px solid var(--background-modifier-border-focus);
+  outline-offset: -1px;
+}
+
+.toolbar-toggle.active {
+  background-color: var(--interactive-accent);
+  border-color: var(--interactive-accent);
+}
+
+.toolbar-toggle.active:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+/* Toolbar toggle icon */
+.toolbar-toggle-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-on-accent);
+}
+
+.toolbar-toggle-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.toolbar-toggle:not(.active) .toolbar-toggle-icon {
+  color: var(--text-muted);
+}
+
+/* Dark theme adjustments */
+.theme-dark .toolbar-button {
+  background-color: var(--background-primary-alt);
+}
+
+/* Light theme adjustments */
+.theme-light .toolbar-button {
   background-color: var(--background-primary);
 }

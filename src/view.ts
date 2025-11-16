@@ -67,8 +67,25 @@ export class TagTreeView extends ItemView {
           onSortChange: (mode: SortMode) => {
             this.handleSortChange(mode);
           },
+          onCollapseAll: () => {
+            this.treeComponent.collapseAll();
+            this.saveViewState();
+          },
+          onExpandAll: () => {
+            this.treeComponent.expandAll();
+            this.saveViewState();
+          },
+          onExpandToDepth: (depth: number) => {
+            this.treeComponent.expandToDepth(depth);
+            this.saveViewState();
+          },
+          onToggleFiles: () => {
+            this.treeComponent.toggleFileVisibility();
+            this.saveViewState();
+          },
         },
-        this.treeComponent.getSortMode()
+        this.treeComponent.getSortMode(),
+        this.treeComponent.getFileVisibility()
       );
       this.toolbar.render(toolbarContainer);
 

@@ -2,6 +2,8 @@ import { ItemView, WorkspaceLeaf } from "obsidian";
 import { VaultIndexer } from "./indexer/vault-indexer";
 import { TreeBuilder } from "./tree/tree-builder";
 import { TreeComponent } from "./components/tree-component";
+import { ViewState } from "./types/view-state";
+import type TagTreePlugin from "./main";
 
 export const VIEW_TYPE_TAG_TREE = "tag-tree-view";
 
@@ -9,9 +11,16 @@ export class TagTreeView extends ItemView {
   private indexer!: VaultIndexer;
   private treeBuilder!: TreeBuilder;
   private treeComponent!: TreeComponent;
+  private plugin: TagTreePlugin;
 
-  constructor(leaf: WorkspaceLeaf) {
+  // State management
+  private viewStateKey = "default";
+  private saveStateTimer: NodeJS.Timeout | null = null;
+  private readonly DEBOUNCE_MS = 500;
+
+  constructor(leaf: WorkspaceLeaf, plugin: TagTreePlugin) {
     super(leaf);
+    this.plugin = plugin;
   }
 
   getViewType() {
@@ -43,7 +52,13 @@ export class TagTreeView extends ItemView {
       loadingEl.remove();
 
       // Render tree UI
-      this.treeComponent = new TreeComponent(this.app);
+      this.treeComponent = new TreeComponent(this.app, () => {
+        this.saveViewState();
+      });
+
+      // Restore saved state before rendering
+      this.restoreViewState();
+
       this.treeComponent.render(tree, container);
 
       // Register event listener for index updates
@@ -63,6 +78,15 @@ export class TagTreeView extends ItemView {
   }
 
   async onClose() {
+    // Save state before closing
+    this.saveViewStateImmediate();
+
+    // Clear any pending debounced saves
+    if (this.saveStateTimer) {
+      clearTimeout(this.saveStateTimer);
+      this.saveStateTimer = null;
+    }
+
     // Cleanup is handled by Obsidian's event system
   }
 
@@ -80,5 +104,65 @@ export class TagTreeView extends ItemView {
     // Re-render with preserved state
     const container = this.containerEl.children[1] as HTMLElement;
     this.treeComponent.render(tree, container);
+  }
+
+  /**
+   * Save current view state (debounced)
+   */
+  saveViewState(): void {
+    // Clear existing timer
+    if (this.saveStateTimer) {
+      clearTimeout(this.saveStateTimer);
+    }
+
+    // Schedule save
+    this.saveStateTimer = setTimeout(() => {
+      this.saveViewStateImmediate();
+      this.saveStateTimer = null;
+    }, this.DEBOUNCE_MS);
+  }
+
+  /**
+   * Save current view state immediately
+   */
+  private saveViewStateImmediate(): void {
+    if (!this.treeComponent) {
+      return;
+    }
+
+    const state: ViewState = {
+      expandedNodes: Array.from(this.treeComponent.getExpandedNodes()),
+      showFiles: this.treeComponent.getFileVisibility(),
+      sortMode: "none", // Will be used in Phase 2.2
+    };
+
+    this.plugin.settings.viewStates[this.viewStateKey] = state;
+    this.plugin.saveSettings();
+  }
+
+  /**
+   * Restore view state from settings
+   */
+  private restoreViewState(): void {
+    if (!this.treeComponent) {
+      return;
+    }
+
+    const state = this.plugin.settings.viewStates[this.viewStateKey];
+    if (!state) {
+      return;
+    }
+
+    // Restore expanded nodes
+    if (state.expandedNodes && state.expandedNodes.length > 0) {
+      this.treeComponent.setExpandedNodes(new Set(state.expandedNodes));
+    }
+
+    // Restore file visibility
+    if (state.showFiles !== undefined) {
+      this.treeComponent.setFileVisibility(state.showFiles);
+    }
+
+    // Sort mode will be restored in Phase 2.2
   }
 }

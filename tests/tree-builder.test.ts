@@ -267,8 +267,9 @@ describe("TreeBuilder", () => {
       const tree = builder.buildFromTags();
 
       const a = tree.children[0];
-      const b = a.children[0];
-      const c = b.children[0];
+      // With new sorting: files before tags, so children[0] is note3.md, children[1] is tag 'b'
+      const b = a.children.find(child => child.type === "tag" && child.name === "b")!;
+      const c = b.children.find(child => child.type === "tag" && child.name === "c")!;
 
       expect(c.fileCount).toBe(1); // note1.md
       expect(b.fileCount).toBe(2); // note1.md + note2.md
@@ -314,7 +315,7 @@ describe("TreeBuilder", () => {
       expect(fileNodes[2].name).toBe("zebra");
     });
 
-    it("should sort tag nodes before file nodes", async () => {
+    it("should sort file nodes before tag nodes", async () => {
       const files: MockFileConfig[] = [
         { path: "file1.md", tags: ["project"] },
         { path: "file2.md", tags: ["project/alpha"] },
@@ -327,12 +328,13 @@ describe("TreeBuilder", () => {
 
       const projectNode = tree.children[0];
 
-      // First child should be tag node "alpha"
-      expect(projectNode.children[0].type).toBe("tag");
-      expect(projectNode.children[0].name).toBe("alpha");
+      // First child should be file node (files come before tags now)
+      expect(projectNode.children[0].type).toBe("file");
+      expect(projectNode.children[0].name).toBe("file1");
 
-      // Second child should be file node
-      expect(projectNode.children[1].type).toBe("file");
+      // Second child should be tag node "alpha"
+      expect(projectNode.children[1].type).toBe("tag");
+      expect(projectNode.children[1].name).toBe("alpha");
     });
 
     it("should sort recursively through all levels", async () => {

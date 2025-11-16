@@ -12,7 +12,7 @@ import { TreeNode } from "../types/tree-node";
  */
 export class TreeComponent {
   private app: App;
-  private container: HTMLElement;
+  private container!: HTMLElement;
   private currentTree: TreeNode | null = null;
 
   // UI state

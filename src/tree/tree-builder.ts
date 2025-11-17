@@ -562,10 +562,42 @@ export class TreeBuilder {
 
       if (shouldContinueRecursing) {
         // Not at the final tag depth yet
+        // For single-level tag hierarchies, we need to handle files whose most specific
+        // tag is at THIS level (they don't have deeper nested tags)
+        const filesEndingHere: TFile[] = [];
+        const filesWithDeeperTags: TFile[] = [];
+
+        if (hierarchyDepth + 1 >= levels.length) {
+          // This is a single-level tag hierarchy, check for files ending at this tag
+          for (const file of groupFiles) {
+            const fileTags = Array.from(this.indexer.getFileTags(file));
+            // Check if this file has any tags deeper than groupKey
+            const hasDeeper = fileTags.some(tag =>
+              tag.startsWith(groupKey + "/") && tag.length > groupKey.length + 1
+            );
+
+            if (hasDeeper) {
+              filesWithDeeperTags.push(file);
+            } else {
+              filesEndingHere.push(file);
+            }
+          }
+
+          // Add files that end here if showPartialMatches=true or if we're at last level
+          if (showPartialMatches || tagDepth === -1) {
+            for (const file of filesEndingHere) {
+              node.children.push(createFileNode(file, treeDepth + subDepth + 1, node.id));
+            }
+          }
+        } else {
+          // Multi-level hierarchy, use all files for recursion
+          filesWithDeeperTags.push(...groupFiles);
+        }
+
         if (tagLevel.virtual && hierarchyDepth + 1 < levels.length) {
           // Virtual mode: insert next hierarchy level before continuing with tag sub-depths
           this.buildVirtualTagLevel(
-            groupFiles,
+            filesWithDeeperTags,
             levels,
             hierarchyDepth,
             tagLevel,
@@ -578,7 +610,7 @@ export class TreeBuilder {
         } else {
           // Non-virtual mode: continue directly to next tag sub-depth
           const childTreeNode = this.buildMultiDepthTagLevel(
-            groupFiles,
+            filesWithDeeperTags,
             levels,
             hierarchyDepth,
             tagLevel,

@@ -31,13 +31,21 @@ export class TreeComponent {
   // State change callback
   private onStateChange?: () => void;
 
+  // Node search callback (triggered by Ctrl+click or Ctrl+Enter)
+  private onNodeSearch?: (node: TreeNode) => void;
+
   // Keyboard navigation state
   private focusedNodeId: string | null = null;
   private flatNodeList: TreeNode[] = [];
 
-  constructor(app: App, onStateChange?: () => void) {
+  constructor(
+    app: App,
+    onStateChange?: () => void,
+    onNodeSearch?: (node: TreeNode) => void
+  ) {
     this.app = app;
     this.onStateChange = onStateChange;
+    this.onNodeSearch = onNodeSearch;
   }
 
   /**
@@ -174,8 +182,19 @@ export class TreeComponent {
     // Add tooltip with additional info
     this.addTooltip(header, node);
 
-    // Click handler for header (toggle or open file)
-    header.addEventListener("click", () => {
+    // Click handler for header (toggle, open file, or search)
+    header.addEventListener("click", (e) => {
+      // Ctrl+click triggers search for tag and property nodes
+      if (e.ctrlKey || e.metaKey) {
+        if (node.type !== "file" && this.onNodeSearch) {
+          e.preventDefault();
+          e.stopPropagation();
+          this.onNodeSearch(node);
+          return;
+        }
+      }
+
+      // Regular click behavior
       if (node.type === "file" && node.files[0]) {
         this.openFile(node.files[0]);
       } else if (hasVisibleChildren) {
@@ -536,11 +555,11 @@ export class TreeComponent {
         break;
       case "Enter":
         e.preventDefault();
-        this.handleEnter(currentNode);
+        this.handleEnter(currentNode, e.ctrlKey || e.metaKey);
         break;
       case " ": // Space
         e.preventDefault();
-        this.handleSpace(currentNode);
+        this.handleSpace(currentNode, e.ctrlKey || e.metaKey);
         break;
       case "Home":
         e.preventDefault();
@@ -674,9 +693,16 @@ export class TreeComponent {
   }
 
   /**
-   * Handle Enter key (open file or toggle folder)
+   * Handle Enter key (open file, toggle folder, or search with Ctrl)
    */
-  private handleEnter(node: TreeNode): void {
+  private handleEnter(node: TreeNode, ctrlKey: boolean = false): void {
+    // Ctrl+Enter triggers search for tag and property nodes
+    if (ctrlKey && node.type !== "file" && this.onNodeSearch) {
+      this.onNodeSearch(node);
+      return;
+    }
+
+    // Regular Enter behavior
     if (node.type === "file" && node.files[0]) {
       this.openFile(node.files[0]);
     } else if (node.children.length > 0) {
@@ -685,9 +711,16 @@ export class TreeComponent {
   }
 
   /**
-   * Handle Space key (toggle expand/collapse)
+   * Handle Space key (toggle expand/collapse, or search with Ctrl)
    */
-  private handleSpace(node: TreeNode): void {
+  private handleSpace(node: TreeNode, ctrlKey: boolean = false): void {
+    // Ctrl+Space triggers search for tag and property nodes
+    if (ctrlKey && node.type !== "file" && this.onNodeSearch) {
+      this.onNodeSearch(node);
+      return;
+    }
+
+    // Regular Space behavior
     if (node.children.length > 0) {
       this.toggleNode(node.id);
     }

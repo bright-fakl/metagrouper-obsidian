@@ -445,7 +445,9 @@ export class TreeBuilder {
       // Only add if showPartialMatches=true OR this is the last hierarchy level
       if (showPartialMatches || depth + 1 >= levels.length) {
         for (const file of filesForThisLevel) {
-          node.children.push(createFileNode(file, depth + 1, node.id));
+          const fileNode = createFileNode(file, depth + 1, node.id);
+          fileNode.parent = node;
+          node.children.push(fileNode);
         }
       }
 
@@ -464,8 +466,11 @@ export class TreeBuilder {
           node.id
         );
 
-        // Add children from recursive call
-        node.children.push(...childTreeNode.children);
+        // Add children from recursive call and set parent references
+        for (const child of childTreeNode.children) {
+          child.parent = node;
+          node.children.push(child);
+        }
       }
 
       children.push(node);
@@ -587,7 +592,9 @@ export class TreeBuilder {
           // They are not "partial matches" - they fully match the tag they have
           // The showPartialMatches setting only applies to multi-level hierarchies
           for (const file of filesEndingHere) {
-            node.children.push(createFileNode(file, treeDepth + subDepth + 1, node.id));
+            const fileNode = createFileNode(file, treeDepth + subDepth + 1, node.id);
+            fileNode.parent = node;
+            node.children.push(fileNode);
           }
         } else {
           // Multi-level hierarchy, use all files for recursion
@@ -620,7 +627,11 @@ export class TreeBuilder {
             node.id
           );
 
-          node.children.push(...childTreeNode.children);
+          // Add children and set parent references
+          for (const child of childTreeNode.children) {
+            child.parent = node;
+            node.children.push(child);
+          }
         }
       } else {
         // Last sub-depth of this tag level
@@ -647,7 +658,9 @@ export class TreeBuilder {
         // Only add if showPartialMatches=true OR this is the last hierarchy level
         if (showPartialMatches || hierarchyDepth + 1 >= levels.length) {
           for (const file of filesForThisLevel) {
-            node.children.push(createFileNode(file, treeDepth + subDepth + 1, node.id));
+            const fileNode = createFileNode(file, treeDepth + subDepth + 1, node.id);
+            fileNode.parent = node;
+            node.children.push(fileNode);
           }
         }
 
@@ -662,7 +675,11 @@ export class TreeBuilder {
             node.id
           );
 
-          node.children.push(...childTreeNode.children);
+          // Add children and set parent references
+          for (const child of childTreeNode.children) {
+            child.parent = node;
+            node.children.push(child);
+          }
         }
       }
 
@@ -733,7 +750,11 @@ export class TreeBuilder {
         parentId
       );
 
-      parentNode.children.push(...childTreeNode.children);
+      // Add children and set parent references
+      for (const child of childTreeNode.children) {
+        child.parent = parentNode;
+        parentNode.children.push(child);
+      }
     }
 
     // Files that match next level: insert next hierarchy level, then continue with tag sub-depths
@@ -782,7 +803,11 @@ export class TreeBuilder {
           nextLevelNode.id
         );
 
-        nextLevelNode.children.push(...childTreeNode.children);
+        // Add children and set parent references
+        for (const child of childTreeNode.children) {
+          child.parent = nextLevelNode;
+          nextLevelNode.children.push(child);
+        }
         parentNode.children.push(nextLevelNode);
       }
     }

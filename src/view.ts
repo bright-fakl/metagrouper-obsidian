@@ -4,6 +4,9 @@ import { TreeBuilder } from "./tree/tree-builder";
 import { TreeComponent } from "./components/tree-component";
 import { TreeToolbar } from "./components/tree-toolbar";
 import { ViewState, SortMode } from "./types/view-state";
+import { SearchQueryBuilder } from "./utils/search-query-builder";
+import { ObsidianSearch } from "./utils/obsidian-search";
+import { TreeNode } from "./types/tree-node";
 import type TagTreePlugin from "./main";
 
 export const VIEW_TYPE_TAG_TREE = "tag-tree-view";
@@ -14,6 +17,7 @@ export class TagTreeView extends ItemView {
   private treeComponent!: TreeComponent;
   private toolbar!: TreeToolbar;
   private plugin: TagTreePlugin;
+  private obsidianSearch!: ObsidianSearch;
 
   // Per-instance state
   private currentViewName: string;
@@ -82,13 +86,22 @@ export class TagTreeView extends ItemView {
       // Build tree builder
       this.treeBuilder = new TreeBuilder(this.indexer);
 
+      // Initialize search utility
+      this.obsidianSearch = new ObsidianSearch(this.app);
+
       // Remove loading indicator
       loadingEl.remove();
 
-      // Create tree component
-      this.treeComponent = new TreeComponent(this.app, () => {
-        this.saveViewState();
-      });
+      // Create tree component with search callback
+      this.treeComponent = new TreeComponent(
+        this.app,
+        () => {
+          this.saveViewState();
+        },
+        (node: TreeNode) => {
+          this.handleNodeSearch(node);
+        }
+      );
 
       // Restore saved state before rendering
       this.restoreViewState();
@@ -373,5 +386,37 @@ export class TagTreeView extends ItemView {
         }
       }, 50);
     }
+  }
+
+  /**
+   * Handle node search (triggered by Ctrl+click or Ctrl+keyboard)
+   * Builds a search query from the node and opens Obsidian's search view
+   */
+  private handleNodeSearch(node: TreeNode): void {
+    // Get the current view configuration
+    const viewConfig = this.plugin.settings.savedViews.find(
+      (v) => v.name === this.currentViewName
+    );
+
+    if (!viewConfig) {
+      console.error(
+        `[TagTree] Cannot build search query: view "${this.currentViewName}" not found`
+      );
+      return;
+    }
+
+    // Build the search query
+    const queryBuilder = new SearchQueryBuilder(viewConfig);
+    const query = queryBuilder.buildQuery(node);
+
+    if (!query) {
+      console.warn("[TagTree] No search query generated for node:", node);
+      return;
+    }
+
+    console.log("[TagTree] Opening search with query:", query);
+
+    // Open the search view with the query
+    this.obsidianSearch.openSearchWithQuery(query);
   }
 }

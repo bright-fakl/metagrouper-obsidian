@@ -147,7 +147,15 @@ export class TagTreeCodeblockProcessor {
       await indexer.initialize();
 
       const builder = new TreeBuilder(indexer);
-      const tree = builder.buildFromHierarchy(hierarchyConfig);
+
+      // Determine which build method to use
+      // For simple tag hierarchies, use buildFromTags for proper nesting
+      const tree = this.shouldUseBuildFromTags(hierarchyConfig)
+        ? builder.buildFromTags(
+            hierarchyConfig.rootTag?.replace(/^#/, ""),
+            hierarchyConfig.sortMode || "alpha-asc"
+          )
+        : builder.buildFromHierarchy(hierarchyConfig);
 
       // Create a container for the tree
       const treeContainer = el.createDiv("tag-tree-codeblock");
@@ -303,6 +311,42 @@ export class TagTreeCodeblockProcessor {
 
     // Add non-interactive class for CSS styling
     container.addClass("tag-tree-non-interactive");
+  }
+
+  /**
+   * Determine if we should use buildFromTags instead of buildFromHierarchy
+   *
+   * buildFromTags is better for simple nested tag hierarchies because it
+   * automatically builds the full tree structure, while buildFromHierarchy
+   * with depth:1 only shows one level at a time.
+   *
+   * This logic matches the TagTreeView's approach for consistency.
+   *
+   * @param config - Hierarchy configuration
+   * @returns True if should use buildFromTags
+   */
+  private shouldUseBuildFromTags(config: HierarchyConfig): boolean {
+    // Must have exactly one level
+    if (config.levels.length !== 1) {
+      return false;
+    }
+
+    const level = config.levels[0];
+
+    // Must be a tag level
+    if (level.type !== "tag") {
+      return false;
+    }
+
+    // Check depth - if > 1, use buildFromHierarchy for multi-depth features
+    const tagLevel = level as any;
+    if (tagLevel.depth !== undefined && tagLevel.depth > 1) {
+      return false;
+    }
+
+    // Simple tag hierarchy with depth 1 or undefined - use buildFromTags for full nesting
+    // This works for both "All Tags" (key: "") and filtered views (key: "project")
+    return true;
   }
 
   /**

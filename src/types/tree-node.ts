@@ -50,13 +50,39 @@ export interface TreeNode {
 export function createTagNode(
   tagPath: string,
   files: TFile[],
-  depth: number
+  depth: number,
+  options?: {
+    label?: string;
+    showFullPath?: boolean;
+    parentId?: string;
+  }
 ): TreeNode {
   const segments = tagPath.split("/");
-  const name = segments[segments.length - 1];
+  let name: string;
+
+  // Determine the tag portion to display
+  let tagName: string;
+  if (options?.showFullPath) {
+    // Show full tag path
+    tagName = tagPath;
+  } else {
+    // Default: show last segment only
+    tagName = segments[segments.length - 1];
+  }
+
+  // Prepend label if provided and not empty
+  if (options?.label && options.label.trim() !== "") {
+    name = `${options.label}: ${tagName}`;
+  } else {
+    name = tagName;
+  }
+
+  // Create unique ID by including parent context
+  const nodeId = `tag:${tagPath}`;
+  const id = options?.parentId ? `${options.parentId}/${nodeId}` : nodeId;
 
   return {
-    id: `tag:${tagPath}`,
+    id,
     name,
     type: "tag",
     children: [],
@@ -74,11 +100,35 @@ export function createPropertyGroupNode(
   propertyKey: string,
   propertyValue: any,
   files: TFile[],
-  depth: number
+  depth: number,
+  options?: {
+    label?: string;
+    showPropertyName?: boolean;
+    parentId?: string;
+  }
 ): TreeNode {
+  let name: string;
+  const valueName = String(propertyValue);
+
+  // Determine if we should prepend property name
+  if (options?.showPropertyName) {
+    // Use label if provided and not empty, otherwise use property key
+    const prefix = (options?.label && options.label.trim() !== "")
+      ? options.label
+      : propertyKey;
+    name = `${prefix} = ${valueName}`;
+  } else {
+    // Just show value
+    name = valueName;
+  }
+
+  // Create unique ID by including parent context
+  const nodeId = `prop:${propertyKey}:${propertyValue}`;
+  const id = options?.parentId ? `${options.parentId}/${nodeId}` : nodeId;
+
   return {
-    id: `prop:${propertyKey}:${propertyValue}`,
-    name: String(propertyValue),
+    id,
+    name,
     type: "property-group",
     children: [],
     depth,
@@ -91,9 +141,17 @@ export function createPropertyGroupNode(
 /**
  * Factory function to create a file node
  */
-export function createFileNode(file: TFile, depth: number): TreeNode {
+export function createFileNode(
+  file: TFile,
+  depth: number,
+  parentId?: string
+): TreeNode {
+  // File paths are already unique, but include parent for consistency
+  const nodeId = `file:${file.path}`;
+  const id = parentId ? `${parentId}/${nodeId}` : nodeId;
+
   return {
-    id: `file:${file.path}`,
+    id,
     name: file.basename,
     type: "file",
     children: [],

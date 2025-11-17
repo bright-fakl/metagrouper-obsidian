@@ -1,25 +1,57 @@
 import { SortMode } from "./view-state";
 
 /**
- * Represents a single level in a custom hierarchy
- *
- * Each level defines how files should be grouped at that depth:
- * - 'tag': Group by tag matching the key pattern
- * - 'property': Group by frontmatter property value
+ * Base hierarchy level interface
  */
-export interface HierarchyLevel {
-  /** Type of grouping for this level */
-  type: "tag" | "property";
-
-  /** Tag prefix or property name to group by */
-  key: string;
-
+interface BaseHierarchyLevel {
   /** Optional display name override (defaults to key) */
   label?: string;
 
   /** Optional sort mode for this level (defaults to parent config's sort mode) */
   sortBy?: SortMode;
 }
+
+/**
+ * Tag-based hierarchy level
+ * Groups files by tags starting with the specified key
+ */
+export interface TagHierarchyLevel extends BaseHierarchyLevel {
+  type: "tag";
+
+  /** Tag prefix to match (empty string matches all base tags) */
+  key: string;
+
+  /** Number of tag levels to span (minimum 1) */
+  depth: number;
+
+  /** Whether to insert next hierarchy level after each intermediate tag level */
+  virtual: boolean;
+
+  /** Whether to show full tag path or just last segment */
+  showFullPath: boolean;
+}
+
+/**
+ * Property-based hierarchy level
+ * Groups files by frontmatter property values
+ */
+export interface PropertyHierarchyLevel extends BaseHierarchyLevel {
+  type: "property";
+
+  /** Property name to group by */
+  key: string;
+
+  /** Whether to treat list properties as separate values (true) or single value (false) */
+  separateListValues: boolean;
+
+  /** Whether to prepend property name to value (e.g., "status = active") */
+  showPropertyName: boolean;
+}
+
+/**
+ * Union type for all hierarchy levels
+ */
+export type HierarchyLevel = TagHierarchyLevel | PropertyHierarchyLevel;
 
 /**
  * Configuration for a custom hierarchy view
@@ -36,6 +68,9 @@ export interface HierarchyConfig {
 
   /** Ordered list of hierarchy levels (top to bottom) */
   levels: HierarchyLevel[];
+
+  /** Whether to show files that don't match all hierarchy levels */
+  showPartialMatches: boolean;
 
   /** Default expansion depth (0 = collapsed, -1 = fully expanded) */
   defaultExpanded?: number;
@@ -56,14 +91,27 @@ export interface ValidationResult {
  * Default values for hierarchy configuration
  */
 export const DEFAULT_HIERARCHY_CONFIG: Partial<HierarchyConfig> = {
+  showPartialMatches: false,
   defaultExpanded: 1,
   sortMode: "alpha-asc",
 };
 
 /**
- * Default values for hierarchy level
+ * Default values for tag hierarchy level
  */
-export const DEFAULT_HIERARCHY_LEVEL: Partial<HierarchyLevel> = {
+export const DEFAULT_TAG_LEVEL: Partial<TagHierarchyLevel> = {
+  depth: 1,
+  virtual: false,
+  showFullPath: false,
+  sortBy: undefined, // Inherits from parent config
+};
+
+/**
+ * Default values for property hierarchy level
+ */
+export const DEFAULT_PROPERTY_LEVEL: Partial<PropertyHierarchyLevel> = {
+  separateListValues: true,
+  showPropertyName: false,
   sortBy: undefined, // Inherits from parent config
 };
 
@@ -94,12 +142,48 @@ export function validateHierarchyLevel(
   }
 
   // Validate key
-  if (!level.key) {
+  if (level.key === undefined || level.key === null) {
     errors.push("Hierarchy level must have a 'key' field");
   } else if (typeof level.key !== "string") {
     errors.push("Hierarchy level 'key' must be a string");
-  } else if (level.key.trim() === "") {
-    errors.push("Hierarchy level 'key' cannot be empty");
+  }
+  // Note: Empty string is valid for tag keys (matches all base tags)
+
+  // Type-specific validation
+  if (level.type === "tag") {
+    // Validate depth
+    if (level.depth !== undefined) {
+      if (typeof level.depth !== "number") {
+        errors.push("Tag level 'depth' must be a number");
+      } else if (!Number.isInteger(level.depth) || level.depth < 1) {
+        errors.push("Tag level 'depth' must be an integer >= 1");
+      }
+    }
+
+    // Validate virtual
+    if (level.virtual !== undefined && typeof level.virtual !== "boolean") {
+      errors.push("Tag level 'virtual' must be a boolean");
+    }
+
+    // Validate showFullPath
+    if (level.showFullPath !== undefined && typeof level.showFullPath !== "boolean") {
+      errors.push("Tag level 'showFullPath' must be a boolean");
+    }
+  } else if (level.type === "property") {
+    // Validate separateListValues
+    if (level.separateListValues !== undefined && typeof level.separateListValues !== "boolean") {
+      errors.push("Property level 'separateListValues' must be a boolean");
+    }
+
+    // Validate showPropertyName
+    if (level.showPropertyName !== undefined && typeof level.showPropertyName !== "boolean") {
+      errors.push("Property level 'showPropertyName' must be a boolean");
+    }
+
+    // Property key cannot be empty
+    if (typeof level.key === "string" && level.key.trim() === "") {
+      errors.push("Property level 'key' cannot be empty");
+    }
   }
 
   // Validate optional label
@@ -199,6 +283,11 @@ export function validateHierarchyConfig(
     }
   }
 
+  // Validate showPartialMatches
+  if (config.showPartialMatches !== undefined && typeof config.showPartialMatches !== "boolean") {
+    errors.push("Hierarchy config 'showPartialMatches' must be a boolean");
+  }
+
   // Validate optional sortMode
   if (config.sortMode !== undefined) {
     const validSortModes: SortMode[] = [
@@ -222,18 +311,51 @@ export function validateHierarchyConfig(
 }
 
 /**
- * Creates a hierarchy level with default values
+ * Creates a tag hierarchy level with default values
  *
- * @param level - Partial hierarchy level
+ * @param level - Partial tag hierarchy level
+ * @returns Complete tag hierarchy level with defaults applied
+ */
+export function createTagLevel(
+  level: Partial<TagHierarchyLevel> & Pick<TagHierarchyLevel, "key">
+): TagHierarchyLevel {
+  return {
+    type: "tag",
+    ...DEFAULT_TAG_LEVEL,
+    ...level,
+  } as TagHierarchyLevel;
+}
+
+/**
+ * Creates a property hierarchy level with default values
+ *
+ * @param level - Partial property hierarchy level
+ * @returns Complete property hierarchy level with defaults applied
+ */
+export function createPropertyLevel(
+  level: Partial<PropertyHierarchyLevel> & Pick<PropertyHierarchyLevel, "key">
+): PropertyHierarchyLevel {
+  return {
+    type: "property",
+    ...DEFAULT_PROPERTY_LEVEL,
+    ...level,
+  } as PropertyHierarchyLevel;
+}
+
+/**
+ * Creates a hierarchy level with default values (factory function)
+ *
+ * @param level - Partial hierarchy level with type
  * @returns Complete hierarchy level with defaults applied
  */
 export function createHierarchyLevel(
   level: Partial<HierarchyLevel> & Pick<HierarchyLevel, "type" | "key">
 ): HierarchyLevel {
-  return {
-    ...DEFAULT_HIERARCHY_LEVEL,
-    ...level,
-  };
+  if (level.type === "tag") {
+    return createTagLevel(level as Partial<TagHierarchyLevel> & Pick<TagHierarchyLevel, "key">);
+  } else {
+    return createPropertyLevel(level as Partial<PropertyHierarchyLevel> & Pick<PropertyHierarchyLevel, "key">);
+  }
 }
 
 /**
@@ -248,6 +370,7 @@ export function createHierarchyConfig(
   return {
     ...DEFAULT_HIERARCHY_CONFIG,
     ...config,
+    showPartialMatches: config.showPartialMatches ?? false,
   };
 }
 
@@ -257,7 +380,16 @@ export function createHierarchyConfig(
 export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
   {
     name: "All Tags",
-    levels: [{ type: "tag", key: "" }],
+    levels: [
+      {
+        type: "tag",
+        key: "",
+        depth: 1,
+        virtual: false,
+        showFullPath: false,
+      }
+    ],
+    showPartialMatches: false,
     defaultExpanded: 2,
     sortMode: "alpha-asc",
   },
@@ -265,10 +397,30 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
     name: "Projects by Status",
     rootTag: "project",
     levels: [
-      { type: "property", key: "status", label: "Status" },
-      { type: "property", key: "priority", label: "Priority" },
-      { type: "tag", key: "project", label: "Project" },
+      {
+        type: "property",
+        key: "status",
+        label: "Status",
+        separateListValues: true,
+        showPropertyName: false,
+      },
+      {
+        type: "property",
+        key: "priority",
+        label: "Priority",
+        separateListValues: true,
+        showPropertyName: false,
+      },
+      {
+        type: "tag",
+        key: "project",
+        label: "Project",
+        depth: 2,
+        virtual: false,
+        showFullPath: false,
+      },
     ],
+    showPartialMatches: false,
     defaultExpanded: 2,
     sortMode: "alpha-asc",
   },
@@ -276,10 +428,31 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
     name: "Research by Topic and Year",
     rootTag: "research",
     levels: [
-      { type: "property", key: "topic", label: "Topic" },
-      { type: "property", key: "year", label: "Year", sortBy: "alpha-desc" },
-      { type: "tag", key: "research", label: "Subtopic" },
+      {
+        type: "property",
+        key: "topic",
+        label: "Topic",
+        separateListValues: true,
+        showPropertyName: false,
+      },
+      {
+        type: "property",
+        key: "year",
+        label: "Year",
+        sortBy: "alpha-desc",
+        separateListValues: false,
+        showPropertyName: false,
+      },
+      {
+        type: "tag",
+        key: "research",
+        label: "Subtopic",
+        depth: 1,
+        virtual: false,
+        showFullPath: false,
+      },
     ],
+    showPartialMatches: false,
     defaultExpanded: 1,
     sortMode: "alpha-asc",
   },
@@ -292,9 +465,18 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
         key: "status",
         label: "Status",
         sortBy: "count-desc",
+        separateListValues: true,
+        showPropertyName: false,
       },
-      { type: "property", key: "project", label: "Project" },
+      {
+        type: "property",
+        key: "project",
+        label: "Project",
+        separateListValues: true,
+        showPropertyName: false,
+      },
     ],
+    showPartialMatches: false,
     defaultExpanded: 1,
     sortMode: "count-desc",
   },

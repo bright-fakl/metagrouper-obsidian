@@ -557,14 +557,14 @@ class ViewEditorModal extends Modal {
         // Depth field
         new Setting(levelContainer)
           .setName("Depth")
-          .setDesc("Number of tag levels to span (minimum 1)")
+          .setDesc("Number of tag levels to span (1 or higher for specific depth, -1 for unlimited/full nested hierarchy)")
           .addText((text) =>
             text
-              .setPlaceholder("1")
-              .setValue(String(tagLevel.depth ?? 1))
+              .setPlaceholder("-1")
+              .setValue(String(tagLevel.depth ?? -1))
               .onChange((value) => {
                 const num = parseInt(value);
-                if (!isNaN(num) && num >= 1) {
+                if (!isNaN(num) && (num >= 1 || num === -1)) {
                   tagLevel.depth = num;
                 }
               })

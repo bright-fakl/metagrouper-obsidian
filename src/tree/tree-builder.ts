@@ -512,11 +512,15 @@ export class TreeBuilder {
     const groups = new Map<string, TFile[]>();
 
     for (const file of files) {
+      // Always look for immediate children (depth 1) relative to parent
+      // The subDepth counter is only for tracking when to stop recursion
+      const targetDepth = parentTagPath ? 1 : (subDepth + 1);
+
       const matchingTags = this.findMatchingTagsAtDepth(
         file,
         tagLevel.key,
         parentTagPath,
-        subDepth + 1 // Find tags at this specific depth
+        targetDepth
       );
 
       for (const tag of matchingTags) {

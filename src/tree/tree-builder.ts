@@ -255,6 +255,16 @@ export class TreeBuilder {
    * @returns Root tree node with hierarchical structure
    */
   buildFromHierarchy(config: HierarchyConfig): TreeNode {
+    // Optimization: For simple single-level tag hierarchies with unlimited depth,
+    // use buildFromTags which is more efficient for full nested hierarchies
+    if (this.shouldUseBuildFromTags(config)) {
+      const tagLevel = config.levels[0] as TagHierarchyLevel;
+      return this.buildFromTags(
+        config.rootTag?.replace(/^#/, ""),
+        config.sortMode || "alpha-asc"
+      );
+    }
+
     // Get initial file set (optionally filtered by root tag)
     const allFiles = this.indexer.getAllFiles();
     let files: TFile[];
@@ -290,6 +300,42 @@ export class TreeBuilder {
     this.calculateFileCounts(root);
 
     return root;
+  }
+
+  /**
+   * Check if we should use buildFromTags for optimization
+   *
+   * @param config - Hierarchy configuration
+   * @returns True if should delegate to buildFromTags
+   */
+  private shouldUseBuildFromTags(config: HierarchyConfig): boolean {
+    // Must be a single-level hierarchy
+    if (config.levels.length !== 1) {
+      return false;
+    }
+
+    const level = config.levels[0];
+
+    // Must be a tag level
+    if (level.type !== "tag") {
+      return false;
+    }
+
+    const tagLevel = level as TagHierarchyLevel;
+
+    // Must have unlimited depth (-1)
+    // If depth is 1 or greater, we need to use buildFromHierarchy to honor that limit
+    if (tagLevel.depth !== -1) {
+      return false;
+    }
+
+    // Must not use advanced features
+    if (tagLevel.virtual) {
+      return false;
+    }
+
+    // Simple unlimited-depth tag hierarchy - use buildFromTags for optimization
+    return true;
   }
 
   /**

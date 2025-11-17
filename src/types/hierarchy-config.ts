@@ -21,7 +21,12 @@ export interface TagHierarchyLevel extends BaseHierarchyLevel {
   /** Tag prefix to match (empty string matches all base tags) */
   key: string;
 
-  /** Number of tag levels to span (minimum 1) */
+  /**
+   * Number of tag levels to span
+   * - 1: Single level (e.g., "project" but not "project/alpha")
+   * - 2+: Multiple levels (e.g., 2 = "project" and "project/alpha")
+   * - -1: Unlimited depth - show full nested hierarchy (default for simple tag views)
+   */
   depth: number;
 
   /** Whether to insert next hierarchy level after each intermediate tag level */
@@ -100,7 +105,7 @@ export const DEFAULT_HIERARCHY_CONFIG: Partial<HierarchyConfig> = {
  * Default values for tag hierarchy level
  */
 export const DEFAULT_TAG_LEVEL: Partial<TagHierarchyLevel> = {
-  depth: 1,
+  depth: -1, // -1 = unlimited depth (show full nested hierarchy)
   virtual: false,
   showFullPath: false,
   sortBy: undefined, // Inherits from parent config
@@ -155,8 +160,8 @@ export function validateHierarchyLevel(
     if (level.depth !== undefined) {
       if (typeof level.depth !== "number") {
         errors.push("Tag level 'depth' must be a number");
-      } else if (!Number.isInteger(level.depth) || level.depth < 1) {
-        errors.push("Tag level 'depth' must be an integer >= 1");
+      } else if (!Number.isInteger(level.depth) || (level.depth < 1 && level.depth !== -1)) {
+        errors.push("Tag level 'depth' must be an integer >= 1 or -1 for unlimited depth");
       }
     }
 
@@ -384,7 +389,7 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
       {
         type: "tag",
         key: "",
-        depth: 1,
+        depth: -1, // Show full nested hierarchy
         virtual: false,
         showFullPath: false,
       }

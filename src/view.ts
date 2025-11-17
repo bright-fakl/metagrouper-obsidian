@@ -249,18 +249,9 @@ export class TagTreeView extends ItemView {
       return;
     }
 
-    // Build tree based on view type
-    let tree;
-    if (viewConfig.levels.length === 1 && viewConfig.levels[0].type === "tag" && viewConfig.levels[0].key === "") {
-      // Simple "All Tags" view - use buildFromTags
-      tree = this.treeBuilder.buildFromTags(
-        viewConfig.rootTag,
-        viewConfig.sortMode || this.treeComponent.getSortMode()
-      );
-    } else {
-      // Custom hierarchy view - use buildFromHierarchy
-      tree = this.treeBuilder.buildFromHierarchy(viewConfig);
-    }
+    // Build tree from hierarchy configuration
+    // TreeBuilder will internally optimize for simple tag hierarchies (depth=-1)
+    const tree = this.treeBuilder.buildFromHierarchy(viewConfig);
 
     // Render tree
     this.treeComponent.render(tree, container);

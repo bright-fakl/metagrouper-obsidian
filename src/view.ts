@@ -196,6 +196,11 @@ export class TagTreeView extends ItemView {
     // Update current view name
     this.currentViewName = viewName;
 
+    // Update toolbar dropdown to reflect the change
+    if (this.toolbar) {
+      this.toolbar.setCurrentViewName(viewName);
+    }
+
     // Clear expanded nodes when switching views (or restore view-specific state)
     const viewState = this.plugin.settings.viewStates[viewName];
     if (viewState) {

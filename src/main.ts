@@ -1,10 +1,11 @@
-import { App, Plugin, PluginManifest, WorkspaceLeaf } from "obsidian";
+import { App, Plugin, PluginManifest, WorkspaceLeaf, MarkdownPostProcessorContext } from "obsidian";
 import { TagTreeView, VIEW_TYPE_TAG_TREE } from "./view";
 import {
   TagTreeSettings,
   DEFAULT_SETTINGS,
 } from "./settings/plugin-settings";
 import { TagTreeSettingsTab } from "./settings/settings-tab";
+import { TagTreeCodeblockProcessor } from "./codeblock/codeblock-processor";
 
 export default class TagTreePlugin extends Plugin {
   settings!: TagTreeSettings;
@@ -37,6 +38,24 @@ export default class TagTreePlugin extends Plugin {
 
     // Register dynamic commands for view switching
     this.registerViewCommands();
+
+    // Register markdown codeblock processor for tagtree blocks
+    this.registerMarkdownCodeBlockProcessor(
+      "tagtree",
+      this.processTagTreeBlock.bind(this)
+    );
+  }
+
+  /**
+   * Process tagtree codeblocks in markdown
+   */
+  async processTagTreeBlock(
+    source: string,
+    el: HTMLElement,
+    ctx: MarkdownPostProcessorContext
+  ): Promise<void> {
+    const processor = new TagTreeCodeblockProcessor(this.app, this);
+    await processor.render(source, el, ctx);
   }
 
   async onunload() {

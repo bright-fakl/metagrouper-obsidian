@@ -447,3 +447,159 @@
 .theme-light .toolbar-button {
   background-color: var(--background-primary);
 }
+
+/* ========================================
+   Phase 5: Codeblock Rendering Styles
+   ======================================== */
+
+/* Codeblock container */
+.tag-tree-codeblock {
+  padding: 12px;
+  margin: 8px 0;
+  background-color: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  font-size: var(--font-ui-small);
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+/* Codeblock tree container (nested inside codeblock) */
+.tag-tree-codeblock .tag-tree-container {
+  padding: 0;
+}
+
+/* Non-interactive mode styles */
+.tag-tree-codeblock .tag-tree-non-interactive .tree-node-header {
+  cursor: default;
+}
+
+.tag-tree-codeblock .tag-tree-non-interactive .tree-node-header:hover {
+  background-color: transparent;
+}
+
+.tag-tree-codeblock .tag-tree-non-interactive .tree-collapse-icon {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* List format styles */
+.tag-tree-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.tag-tree-list ul {
+  list-style: none;
+  padding-left: 20px;
+  margin: 4px 0;
+}
+
+.tag-tree-list li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+.tag-tree-list .tag-tree-node-name {
+  color: var(--text-normal);
+}
+
+.tag-tree-list .tag-tree-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  margin-left: 4px;
+}
+
+.tag-tree-list .internal-link {
+  color: var(--text-accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tag-tree-list .internal-link:hover {
+  text-decoration: underline;
+}
+
+/* Codeblock error message */
+.tag-tree-codeblock-error {
+  padding: 12px;
+  margin: 8px 0;
+  background-color: var(--background-modifier-error);
+  border: 1px solid var(--background-modifier-error-border);
+  border-radius: 6px;
+  color: var(--text-error);
+  font-size: var(--font-ui-small);
+}
+
+.tag-tree-codeblock-error strong {
+  color: var(--text-error);
+  font-weight: 600;
+}
+
+/* Compact mode for codeblocks (less padding) */
+.tag-tree-codeblock[data-format="list"] {
+  padding: 8px 12px;
+}
+
+/* Interactive mode hover effects */
+.tag-tree-codeblock[data-interactive="true"] .tree-node-header:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* Non-interactive mode - no hover effects */
+.tag-tree-codeblock[data-interactive="false"] .tree-node-header {
+  cursor: default;
+}
+
+.tag-tree-codeblock[data-interactive="false"] .tree-node-header:hover {
+  background-color: transparent;
+}
+
+/* Scrollbar styling for codeblock trees */
+.tag-tree-codeblock::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tag-tree-codeblock::-webkit-scrollbar-track {
+  background: var(--background-primary);
+}
+
+.tag-tree-codeblock::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+}
+
+.tag-tree-codeblock::-webkit-scrollbar-thumb:hover {
+  background: var(--background-modifier-border-hover);
+}
+
+/* Dark theme adjustments for codeblocks */
+.theme-dark .tag-tree-codeblock {
+  background-color: var(--background-primary);
+  border-color: var(--background-modifier-border);
+}
+
+.theme-dark .tag-tree-codeblock-error {
+  background-color: rgba(var(--color-red-rgb), 0.1);
+  border-color: rgba(var(--color-red-rgb), 0.3);
+}
+
+/* Light theme adjustments for codeblocks */
+.theme-light .tag-tree-codeblock {
+  background-color: var(--background-secondary);
+  border-color: var(--background-modifier-border);
+}
+
+.theme-light .tag-tree-codeblock-error {
+  background-color: rgba(var(--color-red-rgb), 0.05);
+  border-color: rgba(var(--color-red-rgb), 0.2);
+}
+
+/* Responsive adjustments for codeblocks */
+@media (max-width: 768px) {
+  .tag-tree-codeblock {
+    padding: 8px;
+    max-height: 400px;
+  }
+}

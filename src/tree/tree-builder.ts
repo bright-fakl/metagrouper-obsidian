@@ -11,6 +11,7 @@ import {
   HierarchyConfig,
   HierarchyLevel,
   TagHierarchyLevel,
+  PropertyHierarchyLevel,
 } from "../types/hierarchy-config";
 
 /**
@@ -608,16 +609,39 @@ export class TreeBuilder {
 
     for (const file of files) {
       if (level.type === "property") {
-        // Group by property value
+        // Group by property value (with list handling)
+        const propertyLevel = level as PropertyHierarchyLevel;
         const props = this.indexer.getFileProperties(file);
         const value = props[level.key];
 
         if (value !== undefined) {
-          const groupKey = String(value);
-          if (!groups.has(groupKey)) {
-            groups.set(groupKey, []);
+          // Handle list properties
+          if (Array.isArray(value)) {
+            if (propertyLevel.separateListValues) {
+              // Separate list values - create a group for each value
+              for (const item of value) {
+                const groupKey = String(item);
+                if (!groups.has(groupKey)) {
+                  groups.set(groupKey, []);
+                }
+                groups.get(groupKey)!.push(file);
+              }
+            } else {
+              // Combined list values - treat as single value with bracket notation
+              const groupKey = `[${value.map((v) => String(v)).join(", ")}]`;
+              if (!groups.has(groupKey)) {
+                groups.set(groupKey, []);
+              }
+              groups.get(groupKey)!.push(file);
+            }
+          } else {
+            // Non-list property - use as-is
+            const groupKey = String(value);
+            if (!groups.has(groupKey)) {
+              groups.set(groupKey, []);
+            }
+            groups.get(groupKey)!.push(file);
           }
-          groups.get(groupKey)!.push(file);
         }
         // Files without this property are not included (don't match this level)
       } else if (level.type === "tag") {
@@ -724,7 +748,19 @@ export class TreeBuilder {
   ): boolean {
     if (level.type === "property") {
       const props = this.indexer.getFileProperties(file);
-      return props[level.key] !== undefined;
+      const value = props[level.key];
+
+      // Property must be defined and non-empty
+      if (value === undefined) {
+        return false;
+      }
+
+      // Empty arrays don't match
+      if (Array.isArray(value) && value.length === 0) {
+        return false;
+      }
+
+      return true;
     } else if (level.type === "tag") {
       const matchingTags = this.findMatchingTags(
         file,

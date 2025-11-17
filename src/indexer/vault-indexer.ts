@@ -28,6 +28,11 @@ export class VaultIndexer extends Events {
   // Initialization state
   private initialized: boolean;
 
+  // Debouncing for batch updates
+  private updateQueue: Set<TFile>;
+  private updateTimer: NodeJS.Timeout | null;
+  private readonly DEBOUNCE_MS = 300;
+
   constructor(app: App) {
     super();
     this.app = app;
@@ -39,6 +44,8 @@ export class VaultIndexer extends Events {
     this.lastIndexTime = 0;
     this.fileCount = 0;
     this.initialized = false;
+    this.updateQueue = new Set();
+    this.updateTimer = null;
   }
 
   /**
@@ -249,17 +256,45 @@ export class VaultIndexer extends Events {
   }
 
   /**
-   * Update the index for a single file (incremental update)
+   * Schedule an update for a file (debounced)
    */
-  private async updateFileIndex(file: TFile): Promise<void> {
-    // Remove old entries
-    this.removeFileFromIndex(file);
+  private updateFileIndex(file: TFile): void {
+    // Add file to update queue
+    this.updateQueue.add(file);
 
-    // Re-index the file
-    await this.indexFile(file);
+    // Clear existing timer
+    if (this.updateTimer) {
+      clearTimeout(this.updateTimer);
+    }
 
-    // Notify listeners
-    this.trigger("index-updated", file);
+    // Schedule batch update
+    this.updateTimer = setTimeout(() => {
+      this.processBatchUpdate();
+    }, this.DEBOUNCE_MS);
+  }
+
+  /**
+   * Process batch update of all queued files
+   */
+  private async processBatchUpdate(): Promise<void> {
+    const filesToUpdate = Array.from(this.updateQueue);
+    this.updateQueue.clear();
+    this.updateTimer = null;
+
+    // Update all queued files
+    for (const file of filesToUpdate) {
+      // Remove old entries
+      this.removeFileFromIndex(file);
+
+      // Re-index the file
+      await this.indexFile(file);
+    }
+
+    // Update timestamp
+    this.lastIndexTime = Date.now();
+
+    // Notify listeners once for the batch
+    this.trigger("index-updated");
   }
 
   /**

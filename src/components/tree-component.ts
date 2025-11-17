@@ -31,6 +31,10 @@ export class TreeComponent {
   // State change callback
   private onStateChange?: () => void;
 
+  // Keyboard navigation state
+  private focusedNodeId: string | null = null;
+  private flatNodeList: TreeNode[] = [];
+
   constructor(app: App, onStateChange?: () => void) {
     this.app = app;
     this.onStateChange = onStateChange;
@@ -49,6 +53,9 @@ export class TreeComponent {
     // Create main tree container
     const treeContainer = container.createDiv("tag-tree-container");
 
+    // Set up keyboard navigation
+    this.setupKeyboardNavigation(treeContainer);
+
     // Initialize default expanded state on first render only
     if (!this.hasInitializedExpansion && this.defaultExpandDepth > 0) {
       this.initializeDefaultExpansion(tree);
@@ -63,6 +70,9 @@ export class TreeComponent {
     } else {
       this.renderNodeRecursive(tree, treeContainer);
     }
+
+    // Build flat node list for keyboard navigation
+    this.buildFlatNodeList();
   }
 
   /**
@@ -111,6 +121,11 @@ export class TreeComponent {
 
     // Create header
     const header = nodeEl.createDiv("tree-node-header");
+
+    // Make header focusable for keyboard navigation
+    header.setAttribute("tabindex", "0");
+    header.setAttribute("role", "treeitem");
+    header.dataset.focusNodeId = node.id;
 
     // Check if node has visible children (excluding files if they're hidden)
     const hasVisibleChildren = this.hasVisibleChildren(node);
@@ -230,6 +245,9 @@ export class TreeComponent {
 
     // Smart update: only update the affected node
     this.updateNodeElement(nodeId);
+
+    // Rebuild flat node list for keyboard navigation
+    this.buildFlatNodeList();
 
     // Notify state change
     this.onStateChange?.();
@@ -466,6 +484,212 @@ export class TreeComponent {
       this.sortMode = mode;
       // Notify state change
       this.onStateChange?.();
+    }
+  }
+
+  /**
+   * Set up keyboard navigation for the tree
+   */
+  private setupKeyboardNavigation(container: HTMLElement): void {
+    container.addEventListener("keydown", (e) => {
+      this.handleKeyDown(e);
+    });
+
+    // Handle focus events to track focused node
+    container.addEventListener("focusin", (e) => {
+      const target = e.target as HTMLElement;
+      if (target.classList.contains("tree-node-header")) {
+        this.focusedNodeId = target.dataset.focusNodeId || null;
+      }
+    });
+  }
+
+  /**
+   * Handle keyboard events
+   */
+  private handleKeyDown(e: KeyboardEvent): void {
+    if (!this.focusedNodeId) return;
+
+    const currentIndex = this.flatNodeList.findIndex(
+      (node) => node.id === this.focusedNodeId
+    );
+    if (currentIndex === -1) return;
+
+    const currentNode = this.flatNodeList[currentIndex];
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        this.focusNextNode(currentIndex);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        this.focusPreviousNode(currentIndex);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        this.handleRightArrow(currentNode);
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        this.handleLeftArrow(currentNode);
+        break;
+      case "Enter":
+        e.preventDefault();
+        this.handleEnter(currentNode);
+        break;
+      case " ": // Space
+        e.preventDefault();
+        this.handleSpace(currentNode);
+        break;
+      case "Home":
+        e.preventDefault();
+        this.focusFirstNode();
+        break;
+      case "End":
+        e.preventDefault();
+        this.focusLastNode();
+        break;
+    }
+  }
+
+  /**
+   * Build a flat list of all visible nodes for keyboard navigation
+   */
+  private buildFlatNodeList(): void {
+    this.flatNodeList = [];
+    if (!this.currentTree) return;
+
+    const addNode = (node: TreeNode) => {
+      // Skip root node
+      if (node.id === "root") {
+        node.children.forEach(addNode);
+        return;
+      }
+
+      // Skip file nodes if files are hidden
+      if (!this.showFiles && node.type === "file") {
+        return;
+      }
+
+      this.flatNodeList.push(node);
+
+      // Add children if node is expanded
+      if (this.isExpanded(node.id)) {
+        node.children.forEach(addNode);
+      }
+    };
+
+    addNode(this.currentTree);
+  }
+
+  /**
+   * Focus the next node in the flat list
+   */
+  private focusNextNode(currentIndex: number): void {
+    if (currentIndex < this.flatNodeList.length - 1) {
+      const nextNode = this.flatNodeList[currentIndex + 1];
+      this.focusNode(nextNode.id);
+    }
+  }
+
+  /**
+   * Focus the previous node in the flat list
+   */
+  private focusPreviousNode(currentIndex: number): void {
+    if (currentIndex > 0) {
+      const prevNode = this.flatNodeList[currentIndex - 1];
+      this.focusNode(prevNode.id);
+    }
+  }
+
+  /**
+   * Focus the first node
+   */
+  private focusFirstNode(): void {
+    if (this.flatNodeList.length > 0) {
+      this.focusNode(this.flatNodeList[0].id);
+    }
+  }
+
+  /**
+   * Focus the last node
+   */
+  private focusLastNode(): void {
+    if (this.flatNodeList.length > 0) {
+      this.focusNode(this.flatNodeList[this.flatNodeList.length - 1].id);
+    }
+  }
+
+  /**
+   * Focus a specific node by ID
+   */
+  private focusNode(nodeId: string): void {
+    const nodeEl = this.nodeElements.get(nodeId);
+    if (!nodeEl) return;
+
+    const header = nodeEl.querySelector(".tree-node-header") as HTMLElement;
+    if (header) {
+      header.focus();
+      this.focusedNodeId = nodeId;
+
+      // Scroll into view if needed
+      header.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }
+
+  /**
+   * Handle right arrow key (expand node)
+   */
+  private handleRightArrow(node: TreeNode): void {
+    if (node.children.length > 0) {
+      if (!this.isExpanded(node.id)) {
+        this.toggleNode(node.id);
+      } else {
+        // If already expanded, move to first child
+        const currentIndex = this.flatNodeList.findIndex(
+          (n) => n.id === node.id
+        );
+        if (currentIndex < this.flatNodeList.length - 1) {
+          this.focusNextNode(currentIndex);
+        }
+      }
+    }
+  }
+
+  /**
+   * Handle left arrow key (collapse node or move to parent)
+   */
+  private handleLeftArrow(node: TreeNode): void {
+    if (this.isExpanded(node.id) && node.children.length > 0) {
+      // Collapse if expanded
+      this.toggleNode(node.id);
+    } else if (node.parent) {
+      // Move to parent if not expanded
+      this.focusNode(node.parent.id);
+    }
+  }
+
+  /**
+   * Handle Enter key (open file or toggle folder)
+   */
+  private handleEnter(node: TreeNode): void {
+    if (node.type === "file" && node.files[0]) {
+      this.openFile(node.files[0]);
+    } else if (node.children.length > 0) {
+      this.toggleNode(node.id);
+    }
+  }
+
+  /**
+   * Handle Space key (toggle expand/collapse)
+   */
+  private handleSpace(node: TreeNode): void {
+    if (node.children.length > 0) {
+      this.toggleNode(node.id);
     }
   }
 }

@@ -15,14 +15,16 @@ export class TagTreeView extends ItemView {
   private toolbar!: TreeToolbar;
   private plugin: TagTreePlugin;
 
-  // State management
-  private viewStateKey = "default";
+  // Per-instance state
+  private currentViewName: string;
   private saveStateTimer: NodeJS.Timeout | null = null;
   private readonly DEBOUNCE_MS = 500;
 
   constructor(leaf: WorkspaceLeaf, plugin: TagTreePlugin) {
     super(leaf);
     this.plugin = plugin;
+    // Initialize with default view
+    this.currentViewName = plugin.settings.defaultViewName;
   }
 
   getViewType() {
@@ -31,6 +33,33 @@ export class TagTreeView extends ItemView {
 
   getDisplayText() {
     return "Tag Tree";
+  }
+
+  /**
+   * Get state for workspace persistence
+   */
+  getState() {
+    return {
+      currentViewName: this.currentViewName,
+    };
+  }
+
+  /**
+   * Restore state from workspace
+   */
+  async setState(state: any, result: any) {
+    if (state?.currentViewName) {
+      // Verify the view still exists
+      const viewExists = this.plugin.settings.savedViews.some(
+        (v) => v.name === state.currentViewName
+      );
+      this.currentViewName = viewExists
+        ? state.currentViewName
+        : this.plugin.settings.defaultViewName;
+    }
+
+    // Call parent setState
+    await super.setState(state, result);
   }
 
   async onOpen() {
@@ -83,21 +112,22 @@ export class TagTreeView extends ItemView {
             this.treeComponent.toggleFileVisibility();
             this.saveViewState();
           },
+          onViewChange: (viewName: string) => {
+            this.handleViewChange(viewName);
+          },
         },
         this.treeComponent.getSortMode(),
-        this.treeComponent.getFileVisibility()
+        this.treeComponent.getFileVisibility(),
+        this.plugin.settings.savedViews,
+        this.currentViewName
       );
       this.toolbar.render(toolbarContainer);
 
       // Create tree container
       const treeContainer = container.createDiv("tag-tree-content");
 
-      // Build and render tree with current sort mode
-      const tree = this.treeBuilder.buildFromTags(
-        undefined,
-        this.treeComponent.getSortMode()
-      );
-      this.treeComponent.render(tree, treeContainer);
+      // Build and render tree based on current view
+      this.buildAndRenderTree(treeContainer);
 
       // Register event listener for index updates
       this.registerEvent(
@@ -139,19 +169,92 @@ export class TagTreeView extends ItemView {
     // Update tree component sort mode
     this.treeComponent.setSortMode(mode);
 
-    // Rebuild tree with new sort mode
-    const tree = this.treeBuilder.buildFromTags(undefined, mode);
-
-    // Re-render tree
+    // Rebuild and re-render tree
     const container = this.containerEl.querySelector(
       ".tag-tree-content"
     ) as HTMLElement;
     if (container) {
-      this.treeComponent.render(tree, container);
+      this.buildAndRenderTree(container);
     }
 
     // Save state
     this.saveViewState();
+  }
+
+  /**
+   * Handle view change from toolbar
+   */
+  private handleViewChange(viewName: string): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Update current view name
+    this.currentViewName = viewName;
+
+    // Clear expanded nodes when switching views (or restore view-specific state)
+    const viewState = this.plugin.settings.viewStates[viewName];
+    if (viewState) {
+      this.treeComponent.setExpandedNodes(new Set(viewState.expandedNodes || []));
+      if (viewState.showFiles !== undefined) {
+        this.treeComponent.setFileVisibility(viewState.showFiles);
+      }
+      if (viewState.sortMode) {
+        this.treeComponent.setSortMode(viewState.sortMode);
+      }
+    } else {
+      // No saved state, use defaults
+      this.treeComponent.setExpandedNodes(new Set());
+    }
+
+    // Rebuild and re-render tree with new view
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.buildAndRenderTree(container);
+    }
+
+    // Save the workspace state (which view is active)
+    this.app.workspace.requestSaveLayout();
+  }
+
+  /**
+   * Build and render tree based on current view configuration
+   */
+  private buildAndRenderTree(container: HTMLElement): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Get the current view configuration
+    const viewConfig = this.plugin.settings.savedViews.find(
+      (v) => v.name === this.currentViewName
+    );
+
+    if (!viewConfig) {
+      // Fallback to default view if current view not found
+      container.createDiv("tag-tree-error", (el) => {
+        el.textContent = `View "${this.currentViewName}" not found. Please check your settings.`;
+      });
+      return;
+    }
+
+    // Build tree based on view type
+    let tree;
+    if (viewConfig.levels.length === 1 && viewConfig.levels[0].type === "tag" && viewConfig.levels[0].key === "") {
+      // Simple "All Tags" view - use buildFromTags
+      tree = this.treeBuilder.buildFromTags(
+        viewConfig.rootTag,
+        viewConfig.sortMode || this.treeComponent.getSortMode()
+      );
+    } else {
+      // Custom hierarchy view - use buildFromHierarchy
+      tree = this.treeBuilder.buildFromHierarchy(viewConfig);
+    }
+
+    // Render tree
+    this.treeComponent.render(tree, container);
   }
 
   /**
@@ -162,19 +265,27 @@ export class TagTreeView extends ItemView {
       return;
     }
 
-    // Rebuild tree with current sort mode
-    const tree = this.treeBuilder.buildFromTags(
-      undefined,
-      this.treeComponent.getSortMode()
-    );
-
     // Re-render with preserved state
     const container = this.containerEl.querySelector(
       ".tag-tree-content"
     ) as HTMLElement;
     if (container) {
-      this.treeComponent.render(tree, container);
+      this.buildAndRenderTree(container);
     }
+  }
+
+  /**
+   * Public method to refresh the tree (called from plugin when settings change)
+   */
+  refresh(): void {
+    this.refreshTree();
+  }
+
+  /**
+   * Get the current view name for this instance
+   */
+  getCurrentViewName(): string {
+    return this.currentViewName;
   }
 
   /**
@@ -207,7 +318,7 @@ export class TagTreeView extends ItemView {
       sortMode: this.treeComponent.getSortMode(),
     };
 
-    this.plugin.settings.viewStates[this.viewStateKey] = state;
+    this.plugin.settings.viewStates[this.currentViewName] = state;
     this.plugin.saveSettings();
   }
 
@@ -219,7 +330,7 @@ export class TagTreeView extends ItemView {
       return;
     }
 
-    const state = this.plugin.settings.viewStates[this.viewStateKey];
+    const state = this.plugin.settings.viewStates[this.currentViewName];
     if (!state) {
       return;
     }

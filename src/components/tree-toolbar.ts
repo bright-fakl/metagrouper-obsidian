@@ -1,5 +1,6 @@
 import { setIcon } from "obsidian";
 import { SortMode } from "../types/view-state";
+import { HierarchyConfig } from "../types/hierarchy-config";
 
 /**
  * Toolbar configuration for callbacks
@@ -10,6 +11,7 @@ export interface TreeToolbarCallbacks {
   onExpandAll: () => void;
   onExpandToDepth: (depth: number) => void;
   onToggleFiles: () => void;
+  onViewChange?: (viewName: string) => void;
 }
 
 /**
@@ -22,6 +24,8 @@ export class TreeToolbar {
   private callbacks: TreeToolbarCallbacks;
   private currentSortMode: SortMode;
   private showFiles: boolean = true;
+  private savedViews: HierarchyConfig[];
+  private currentViewName: string;
 
   // Sort mode labels for dropdown
   private readonly sortModeLabels: Record<SortMode, string> = {
@@ -44,11 +48,15 @@ export class TreeToolbar {
   constructor(
     callbacks: TreeToolbarCallbacks,
     initialSortMode: SortMode = "alpha-asc",
-    initialShowFiles: boolean = true
+    initialShowFiles: boolean = true,
+    savedViews: HierarchyConfig[] = [],
+    currentViewName: string = "All Tags"
   ) {
     this.callbacks = callbacks;
     this.currentSortMode = initialSortMode;
     this.showFiles = initialShowFiles;
+    this.savedViews = savedViews;
+    this.currentViewName = currentViewName;
   }
 
   /**
@@ -60,6 +68,12 @@ export class TreeToolbar {
 
     const toolbar = container.createDiv("tag-tree-toolbar");
 
+    // Row 0: View switcher (at the very top)
+    if (this.savedViews.length > 0 && this.callbacks.onViewChange) {
+      const viewSwitcherRow = toolbar.createDiv("toolbar-row");
+      this.renderViewSwitcher(viewSwitcherRow);
+    }
+
     // Row 1: Expansion controls
     const expansionRow = toolbar.createDiv("toolbar-row");
     this.renderExpansionControls(expansionRow);
@@ -68,6 +82,45 @@ export class TreeToolbar {
     const controlsRow = toolbar.createDiv("toolbar-row");
     this.renderFileVisibilityToggle(controlsRow);
     this.renderSortControl(controlsRow);
+  }
+
+  /**
+   * Render view switcher dropdown
+   */
+  private renderViewSwitcher(row: HTMLElement): void {
+    const viewSection = row.createDiv("toolbar-section toolbar-view-section");
+
+    // View label with icon
+    const viewLabel = viewSection.createSpan("toolbar-label");
+    const viewIcon = viewLabel.createSpan("toolbar-icon");
+    setIcon(viewIcon, "layout-list");
+    viewLabel.createSpan({ text: "View:" });
+
+    // View dropdown
+    const viewDropdown = viewSection.createEl("select", {
+      cls: "dropdown toolbar-dropdown toolbar-view-dropdown",
+    });
+
+    // Add options for each saved view
+    for (const view of this.savedViews) {
+      const option = viewDropdown.createEl("option", {
+        value: view.name,
+        text: view.name,
+      });
+
+      if (view.name === this.currentViewName) {
+        option.selected = true;
+      }
+    }
+
+    // Handle view change
+    viewDropdown.addEventListener("change", () => {
+      const newViewName = viewDropdown.value;
+      this.currentViewName = newViewName;
+      if (this.callbacks.onViewChange) {
+        this.callbacks.onViewChange(newViewName);
+      }
+    });
   }
 
   /**
@@ -276,6 +329,39 @@ export class TreeToolbar {
           toggleIcon.empty();
           setIcon(toggleIcon, this.showFiles ? "eye" : "eye-off");
         }
+      }
+    }
+  }
+
+  /**
+   * Update the saved views list (e.g., when views are added/removed in settings)
+   */
+  updateSavedViews(savedViews: HierarchyConfig[]): void {
+    this.savedViews = savedViews;
+
+    // Re-render if toolbar is already rendered
+    if (this.container) {
+      this.render(this.container);
+    }
+  }
+
+  /**
+   * Update the current view name
+   */
+  setCurrentViewName(viewName: string): void {
+    if (this.currentViewName === viewName) {
+      return;
+    }
+
+    this.currentViewName = viewName;
+
+    // Update dropdown if toolbar is rendered
+    if (this.container) {
+      const dropdown = this.container.querySelector(
+        ".toolbar-view-dropdown"
+      ) as HTMLSelectElement;
+      if (dropdown) {
+        dropdown.value = viewName;
       }
     }
   }

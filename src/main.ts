@@ -4,6 +4,7 @@ import {
   TagTreeSettings,
   DEFAULT_SETTINGS,
 } from "./settings/plugin-settings";
+import { TagTreeSettingsTab } from "./settings/settings-tab";
 
 export default class TagTreePlugin extends Plugin {
   settings!: TagTreeSettings;
@@ -11,6 +12,9 @@ export default class TagTreePlugin extends Plugin {
   async onload() {
     // Load settings
     await this.loadSettings();
+
+    // Register settings tab
+    this.addSettingTab(new TagTreeSettingsTab(this.app, this));
 
     this.registerView(
       VIEW_TYPE_TAG_TREE,
@@ -48,5 +52,21 @@ export default class TagTreePlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+
+  /**
+   * Refresh all active Tag Tree views that are showing a specific view
+   * @param viewName - The name of the view that was updated (optional, refreshes all if not specified)
+   */
+  refreshAllViews(viewName?: string) {
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
+    leaves.forEach((leaf) => {
+      const view = leaf.view as TagTreeView;
+      if (view && typeof view.refresh === "function") {
+        if (!viewName || view.getCurrentViewName() === viewName) {
+          view.refresh();
+        }
+      }
+    });
   }
 }

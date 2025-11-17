@@ -213,7 +213,7 @@ export class TreeComponent {
       tooltipText = `${node.name}\n${node.fileCount} file(s)`;
     }
 
-    header.setAttribute("aria-label", tooltipText);
+    // Use only native browser tooltip (title attribute)
     header.setAttribute("title", tooltipText);
   }
 

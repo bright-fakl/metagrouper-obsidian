@@ -576,6 +576,18 @@ class ViewEditorModal extends Modal {
                 tagLevel.virtual = value;
               })
           );
+
+        // Show full path toggle
+        new Setting(levelContainer)
+          .setName("Show full tag path")
+          .setDesc("Display full tag path (e.g., 'project/a/task1') instead of just last segment ('task1')")
+          .addToggle((toggle) =>
+            toggle
+              .setValue(tagLevel.showFullPath ?? false)
+              .onChange((value) => {
+                tagLevel.showFullPath = value;
+              })
+          );
       } else if (level.type === "property") {
         const propLevel = level as PropertyHierarchyLevel;
 
@@ -588,6 +600,18 @@ class ViewEditorModal extends Modal {
               .setValue(propLevel.separateListValues ?? true)
               .onChange((value) => {
                 propLevel.separateListValues = value;
+              })
+          );
+
+        // Show property name toggle
+        new Setting(levelContainer)
+          .setName("Show property name")
+          .setDesc("Prepend property name to value (e.g., 'status = active' instead of just 'active')")
+          .addToggle((toggle) =>
+            toggle
+              .setValue(propLevel.showPropertyName ?? false)
+              .onChange((value) => {
+                propLevel.showPropertyName = value;
               })
           );
       }

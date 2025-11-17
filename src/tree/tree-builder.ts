@@ -352,9 +352,17 @@ export class TreeBuilder {
       // Create the group node
       let node: TreeNode;
       if (level.type === "tag") {
-        node = createTagNode(groupKey, [], depth);
+        const tagLevel = level as TagHierarchyLevel;
+        node = createTagNode(groupKey, [], depth, {
+          label: tagLevel.label,
+          showFullPath: tagLevel.showFullPath,
+        });
       } else {
-        node = createPropertyGroupNode(level.key, groupKey, [], depth);
+        const propLevel = level as PropertyHierarchyLevel;
+        node = createPropertyGroupNode(level.key, groupKey, [], depth, {
+          label: propLevel.label,
+          showPropertyName: propLevel.showPropertyName,
+        });
       }
 
       // Separate files: those that match next level vs those that end here
@@ -477,7 +485,10 @@ export class TreeBuilder {
     const children: TreeNode[] = [];
 
     for (const [groupKey, groupFiles] of groups.entries()) {
-      const node = createTagNode(groupKey, [], treeDepth + subDepth);
+      const node = createTagNode(groupKey, [], treeDepth + subDepth, {
+        label: tagLevel.label,
+        showFullPath: tagLevel.showFullPath,
+      });
 
       // Check if there are more sub-depths to process
       if (subDepth + 1 < tagDepth) {
@@ -631,13 +642,22 @@ export class TreeBuilder {
         // Create node for next hierarchy level
         let nextLevelNode: TreeNode;
         if (nextLevel.type === "tag") {
-          nextLevelNode = createTagNode(groupKey, [], currentTreeDepth + 1);
+          const tagLvl = nextLevel as TagHierarchyLevel;
+          nextLevelNode = createTagNode(groupKey, [], currentTreeDepth + 1, {
+            label: tagLvl.label,
+            showFullPath: tagLvl.showFullPath,
+          });
         } else {
+          const propLvl = nextLevel as PropertyHierarchyLevel;
           nextLevelNode = createPropertyGroupNode(
             nextLevel.key,
             groupKey,
             [],
-            currentTreeDepth + 1
+            currentTreeDepth + 1,
+            {
+              label: propLvl.label,
+              showPropertyName: propLvl.showPropertyName,
+            }
           );
         }
 

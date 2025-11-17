@@ -26,6 +26,9 @@ export interface TagHierarchyLevel extends BaseHierarchyLevel {
 
   /** Whether to insert next hierarchy level after each intermediate tag level */
   virtual: boolean;
+
+  /** Whether to show full tag path or just last segment */
+  showFullPath: boolean;
 }
 
 /**
@@ -40,6 +43,9 @@ export interface PropertyHierarchyLevel extends BaseHierarchyLevel {
 
   /** Whether to treat list properties as separate values (true) or single value (false) */
   separateListValues: boolean;
+
+  /** Whether to prepend property name to value (e.g., "status = active") */
+  showPropertyName: boolean;
 }
 
 /**
@@ -96,6 +102,7 @@ export const DEFAULT_HIERARCHY_CONFIG: Partial<HierarchyConfig> = {
 export const DEFAULT_TAG_LEVEL: Partial<TagHierarchyLevel> = {
   depth: 1,
   virtual: false,
+  showFullPath: false,
   sortBy: undefined, // Inherits from parent config
 };
 
@@ -104,6 +111,7 @@ export const DEFAULT_TAG_LEVEL: Partial<TagHierarchyLevel> = {
  */
 export const DEFAULT_PROPERTY_LEVEL: Partial<PropertyHierarchyLevel> = {
   separateListValues: true,
+  showPropertyName: false,
   sortBy: undefined, // Inherits from parent config
 };
 
@@ -156,10 +164,20 @@ export function validateHierarchyLevel(
     if (level.virtual !== undefined && typeof level.virtual !== "boolean") {
       errors.push("Tag level 'virtual' must be a boolean");
     }
+
+    // Validate showFullPath
+    if (level.showFullPath !== undefined && typeof level.showFullPath !== "boolean") {
+      errors.push("Tag level 'showFullPath' must be a boolean");
+    }
   } else if (level.type === "property") {
     // Validate separateListValues
     if (level.separateListValues !== undefined && typeof level.separateListValues !== "boolean") {
       errors.push("Property level 'separateListValues' must be a boolean");
+    }
+
+    // Validate showPropertyName
+    if (level.showPropertyName !== undefined && typeof level.showPropertyName !== "boolean") {
+      errors.push("Property level 'showPropertyName' must be a boolean");
     }
 
     // Property key cannot be empty
@@ -367,7 +385,8 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
         type: "tag",
         key: "",
         depth: 1,
-        virtual: false
+        virtual: false,
+        showFullPath: false,
       }
     ],
     showPartialMatches: false,
@@ -382,20 +401,23 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
         type: "property",
         key: "status",
         label: "Status",
-        separateListValues: true
+        separateListValues: true,
+        showPropertyName: false,
       },
       {
         type: "property",
         key: "priority",
         label: "Priority",
-        separateListValues: true
+        separateListValues: true,
+        showPropertyName: false,
       },
       {
         type: "tag",
         key: "project",
         label: "Project",
         depth: 2,
-        virtual: false
+        virtual: false,
+        showFullPath: false,
       },
     ],
     showPartialMatches: false,
@@ -410,21 +432,24 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
         type: "property",
         key: "topic",
         label: "Topic",
-        separateListValues: true
+        separateListValues: true,
+        showPropertyName: false,
       },
       {
         type: "property",
         key: "year",
         label: "Year",
         sortBy: "alpha-desc",
-        separateListValues: false
+        separateListValues: false,
+        showPropertyName: false,
       },
       {
         type: "tag",
         key: "research",
         label: "Subtopic",
         depth: 1,
-        virtual: false
+        virtual: false,
+        showFullPath: false,
       },
     ],
     showPartialMatches: false,
@@ -441,12 +466,14 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
         label: "Status",
         sortBy: "count-desc",
         separateListValues: true,
+        showPropertyName: false,
       },
       {
         type: "property",
         key: "project",
         label: "Project",
-        separateListValues: true
+        separateListValues: true,
+        showPropertyName: false,
       },
     ],
     showPartialMatches: false,

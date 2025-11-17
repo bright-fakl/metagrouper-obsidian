@@ -50,10 +50,25 @@ export interface TreeNode {
 export function createTagNode(
   tagPath: string,
   files: TFile[],
-  depth: number
+  depth: number,
+  options?: {
+    label?: string;
+    showFullPath?: boolean;
+  }
 ): TreeNode {
   const segments = tagPath.split("/");
-  const name = segments[segments.length - 1];
+  let name: string;
+
+  if (options?.label) {
+    // Use custom label if provided
+    name = options.label;
+  } else if (options?.showFullPath) {
+    // Show full tag path
+    name = tagPath;
+  } else {
+    // Default: show last segment only
+    name = segments[segments.length - 1];
+  }
 
   return {
     id: `tag:${tagPath}`,
@@ -74,11 +89,28 @@ export function createPropertyGroupNode(
   propertyKey: string,
   propertyValue: any,
   files: TFile[],
-  depth: number
+  depth: number,
+  options?: {
+    label?: string;
+    showPropertyName?: boolean;
+  }
 ): TreeNode {
+  let name: string;
+
+  if (options?.label) {
+    // Use custom label if provided
+    name = options.label;
+  } else if (options?.showPropertyName) {
+    // Prepend property name
+    name = `${propertyKey} = ${String(propertyValue)}`;
+  } else {
+    // Default: show value only
+    name = String(propertyValue);
+  }
+
   return {
     id: `prop:${propertyKey}:${propertyValue}`,
-    name: String(propertyValue),
+    name,
     type: "property-group",
     children: [],
     depth,

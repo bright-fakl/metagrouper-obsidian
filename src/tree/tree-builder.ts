@@ -373,13 +373,14 @@ export class TreeBuilder {
 
     const level = levels[depth];
 
-    // Handle tag levels with depth > 1 specially
+    // Handle tag levels with depth > 1 or depth = -1 (unlimited) specially
     if (level.type === "tag") {
       const tagLevel = level as TagHierarchyLevel;
       const tagDepth = tagLevel.depth || 1;
 
-      if (tagDepth > 1) {
+      if (tagDepth > 1 || tagDepth === -1) {
         // Multi-depth tag level - build intermediate tag levels
+        // For depth=-1, this will recurse until no more nested tags exist
         return this.buildMultiDepthTagLevel(
           files,
           levels,
@@ -507,18 +508,6 @@ export class TreeBuilder {
     const tagDepth = tagLevel.depth || 1;
     const treeDepth = hierarchyDepth;
 
-    // If we've consumed all sub-depths of this tag level, move to next hierarchy level
-    if (subDepth >= tagDepth) {
-      return this.buildLevelRecursive(
-        files,
-        levels,
-        hierarchyDepth + 1,
-        parentTagPath,
-        showPartialMatches,
-        parentId
-      );
-    }
-
     // Group files by tags at current sub-depth (1 level at a time)
     const groups = new Map<string, TFile[]>();
 
@@ -538,6 +527,20 @@ export class TreeBuilder {
       }
     }
 
+    // If no tags found at this depth, we've reached the end of tag nesting
+    // For depth=-1 (unlimited), this is when we stop recursing
+    // For depth>1, we check if we've consumed all sub-depths
+    if (groups.size === 0 || (tagDepth !== -1 && subDepth >= tagDepth)) {
+      return this.buildLevelRecursive(
+        files,
+        levels,
+        hierarchyDepth + 1,
+        parentTagPath,
+        showPartialMatches,
+        parentId
+      );
+    }
+
     // Create nodes for each group
     const children: TreeNode[] = [];
 
@@ -549,7 +552,11 @@ export class TreeBuilder {
       });
 
       // Check if there are more sub-depths to process
-      if (subDepth + 1 < tagDepth) {
+      // For depth=-1 (unlimited), always continue recursing (will stop when no more tags found)
+      // For depth>1, check if we've reached the final tag depth
+      const shouldContinueRecursing = (tagDepth === -1) || (subDepth + 1 < tagDepth);
+
+      if (shouldContinueRecursing) {
         // Not at the final tag depth yet
         if (tagLevel.virtual && hierarchyDepth + 1 < levels.length) {
           // Virtual mode: insert next hierarchy level before continuing with tag sub-depths

@@ -506,7 +506,7 @@ describe("TreeBuilder", () => {
       expect(alphaNode.metadata?.tagPath).toBe("project/alpha");
     });
 
-    it("should generate unique IDs for nodes", async () => {
+    it("should generate unique hierarchical IDs for nodes", async () => {
       const files: MockFileConfig[] = [
         { path: "note1.md", tags: ["project/alpha"] },
       ];
@@ -520,9 +520,10 @@ describe("TreeBuilder", () => {
       const alphaNode = projectNode.children[0];
       const fileNode = alphaNode.children[0];
 
-      expect(projectNode.id).toBe("tag:project");
-      expect(alphaNode.id).toBe("tag:project/alpha");
-      expect(fileNode.id).toBe("file:note1.md");
+      // IDs include parent context for uniqueness in complex hierarchies
+      expect(projectNode.id).toBe("root/tag:project");
+      expect(alphaNode.id).toBe("root/tag:project/tag:project/alpha");
+      expect(fileNode.id).toBe("root/tag:project/tag:project/alpha/file:note1.md");
     });
   });
 });

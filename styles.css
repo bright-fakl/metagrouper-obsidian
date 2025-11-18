@@ -1,19 +1,42 @@
 /* Tag Tree Plugin Styles - Matching Obsidian's native file explorer */
 
 /* ========================================
+   View Container Styles
+   ======================================== */
+
+/* Main view content container */
+.tag-tree-view-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Navigation header (toolbar area) */
+.tag-tree-nav-header {
+  flex-shrink: 0;
+  padding: var(--size-4-2);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* ========================================
    Settings Styles
    ======================================== */
 
 /* Hierarchy level item separator */
 .setting-item-level {
-  padding: 12px;
-  margin: 12px 0;
+  padding: var(--size-4-3);
+  margin: var(--size-4-3) 0;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
   background-color: var(--background-primary-alt);
 }
 
-/* Main container */
+/* ========================================
+   Tree Styles
+   ======================================== */
+
+/* Main tree container */
 .tag-tree-container {
   padding: 0;
   font-size: var(--font-ui-small);

@@ -73,6 +73,7 @@ export class TagTreeView extends ItemView {
   async onOpen() {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
+    container.addClass("tag-tree-view-content");
 
     // Create a loading indicator
     const loadingEl = container.createDiv("tag-tree-loading");
@@ -110,7 +111,7 @@ export class TagTreeView extends ItemView {
       this.restoreViewState();
 
       // Create and render toolbar
-      const toolbarContainer = container.createDiv("tree-item-self");
+      const toolbarContainer = container.createDiv("tag-tree-nav-header");
       this.toolbar = new TreeToolbar(
         {
           onFileSortChange: (mode: FileSortMode) => {

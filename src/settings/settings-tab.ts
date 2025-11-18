@@ -326,6 +326,10 @@ class ViewEditorModal extends Modal {
     // Create working copy
     if (view) {
       this.workingView = JSON.parse(JSON.stringify(view));
+      // Fix missing levelColorMode if colors are enabled
+      if (this.workingView.enableLevelColors && !this.workingView.levelColorMode) {
+        this.workingView.levelColorMode = "background";
+      }
     } else {
       // Create new view with defaults
       this.workingView = createHierarchyConfig({
@@ -461,6 +465,10 @@ class ViewEditorModal extends Modal {
           .setValue(this.workingView.enableLevelColors ?? false)
           .onChange((value) => {
             this.workingView.enableLevelColors = value;
+            // Set default color mode if enabling and not already set
+            if (value && !this.workingView.levelColorMode) {
+              this.workingView.levelColorMode = "background";
+            }
             this.renderEditor(this.contentEl); // Re-render to show/hide color options
           })
       );

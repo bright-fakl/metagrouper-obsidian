@@ -127,9 +127,6 @@ export class TreeComponent {
     // Add hierarchy level index for styling
     if (node.metadata?.levelIndex !== undefined) {
       nodeEl.dataset.levelIndex = String(node.metadata.levelIndex);
-      console.log("[TagTree] Node", node.name, "has levelIndex:", node.metadata.levelIndex);
-    } else {
-      console.log("[TagTree] Node", node.name, "has NO levelIndex");
     }
 
     // Store in cache for smart updates

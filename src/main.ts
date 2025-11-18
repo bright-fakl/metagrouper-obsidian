@@ -16,6 +16,9 @@ export default class TagTreePlugin extends Plugin {
     // Load settings
     await this.loadSettings();
 
+    // Apply level color styling
+    this.applyLevelColorMode();
+
     // Register settings tab
     this.addSettingTab(new TagTreeSettingsTab(this.app, this));
 
@@ -91,6 +94,21 @@ export default class TagTreePlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+    // Update level color mode when settings change
+    this.applyLevelColorMode();
+  }
+
+  /**
+   * Apply level color mode to the body element
+   */
+  applyLevelColorMode() {
+    const body = document.body;
+
+    if (this.settings.enableLevelColors && this.settings.levelColorMode !== "none") {
+      body.setAttribute("data-level-color-mode", this.settings.levelColorMode);
+    } else {
+      body.removeAttribute("data-level-color-mode");
+    }
   }
 
   /**

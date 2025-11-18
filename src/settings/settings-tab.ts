@@ -12,6 +12,7 @@ import {
   createPropertyLevel,
 } from "../types/hierarchy-config";
 import { SortMode, FileSortMode } from "../types/view-state";
+import { LevelColorMode } from "./plugin-settings";
 
 /**
  * Settings tab for Tag Tree plugin
@@ -33,6 +34,9 @@ export class TagTreeSettingsTab extends PluginSettingTab {
 
     // Default view selector
     this.renderDefaultViewSelector(containerEl);
+
+    // Level colors section
+    this.renderLevelColorsSettings(containerEl);
 
     // Saved views list
     this.renderSavedViewsList(containerEl);
@@ -61,6 +65,43 @@ export class TagTreeSettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           });
       });
+  }
+
+  /**
+   * Render level colors settings
+   */
+  private renderLevelColorsSettings(containerEl: HTMLElement): void {
+    containerEl.createEl("h3", { text: "Hierarchy Level Colors" });
+
+    new Setting(containerEl)
+      .setName("Enable level colors")
+      .setDesc("Color-code nodes by their hierarchy level")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.enableLevelColors)
+          .onChange(async (value) => {
+            this.plugin.settings.enableLevelColors = value;
+            await this.plugin.saveSettings();
+            this.plugin.refreshAllViews();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Color mode")
+      .setDesc("How to apply hierarchy level colors")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("none", "None")
+          .addOption("background", "Background")
+          .addOption("border", "Left border")
+          .addOption("icon", "Icon color")
+          .setValue(this.plugin.settings.levelColorMode)
+          .onChange(async (value) => {
+            this.plugin.settings.levelColorMode = value as LevelColorMode;
+            await this.plugin.saveSettings();
+            this.plugin.refreshAllViews();
+          })
+      );
   }
 
   /**

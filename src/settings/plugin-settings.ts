@@ -5,6 +5,11 @@ import {
 } from "../types/hierarchy-config";
 
 /**
+ * Level color modes for visual hierarchy differentiation
+ */
+export type LevelColorMode = "none" | "background" | "border" | "icon";
+
+/**
  * Plugin settings schema
  */
 export interface TagTreeSettings {
@@ -16,7 +21,30 @@ export interface TagTreeSettings {
 
   /** Per-view UI state storage (keyed by view name) */
   viewStates: Record<string, ViewState>;
+
+  /** Enable hierarchy level coloring */
+  enableLevelColors: boolean;
+
+  /** How to apply level colors */
+  levelColorMode: LevelColorMode;
+
+  /** Optional custom color palette (hex colors) */
+  customLevelColors?: string[];
 }
+
+/**
+ * Default color palette for hierarchy levels
+ * Designed to work well in both light and dark themes
+ */
+export const DEFAULT_LEVEL_COLORS = [
+  "hsl(210, 70%, 85%)",  // Soft blue
+  "hsl(150, 60%, 85%)",  // Soft green
+  "hsl(45, 80%, 85%)",   // Soft yellow
+  "hsl(280, 60%, 85%)",  // Soft purple
+  "hsl(15, 70%, 85%)",   // Soft orange
+  "hsl(330, 60%, 85%)",  // Soft pink
+  "hsl(180, 60%, 85%)",  // Soft cyan
+];
 
 /**
  * Default plugin settings
@@ -32,6 +60,10 @@ export const DEFAULT_SETTINGS: TagTreeSettings = {
     // Default view state for "All Tags"
     "All Tags": { ...DEFAULT_VIEW_STATE },
   },
+
+  // Level colors disabled by default
+  enableLevelColors: false,
+  levelColorMode: "background",
 };
 
 /**
@@ -79,4 +111,12 @@ export function migrateSettings(settings: TagTreeSettings): void {
       state.levelSortOverrides = {};
     }
   });
+
+  // Set defaults for level colors if missing
+  if (settings.enableLevelColors === undefined) {
+    settings.enableLevelColors = false;
+  }
+  if (!settings.levelColorMode) {
+    settings.levelColorMode = "background";
+  }
 }

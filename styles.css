@@ -603,3 +603,124 @@
     max-height: 400px;
   }
 }
+
+/* ========================================
+   Hierarchy Level Colors
+   ======================================== */
+
+/* Level colors - background mode */
+body[data-level-color-mode="background"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(210, 70%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(150, 60%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(45, 80%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(280, 60%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(15, 70%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(330, 60%, 85%);
+}
+
+body[data-level-color-mode="background"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-header {
+  background-color: hsl(180, 60%, 85%);
+}
+
+/* Cycle back for levels > 6 */
+body[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) .tree-node-header:hover {
+  filter: brightness(0.95);
+}
+
+/* Level colors - border mode */
+body[data-level-color-mode="border"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(210, 70%, 55%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(150, 60%, 45%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(45, 80%, 55%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(280, 60%, 55%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(15, 70%, 55%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(330, 60%, 55%);
+  padding-left: 5px;
+}
+
+body[data-level-color-mode="border"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-header {
+  border-left: 3px solid hsl(180, 60%, 55%);
+  padding-left: 5px;
+}
+
+/* Level colors - icon mode */
+body[data-level-color-mode="icon"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(210, 70%, 45%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(150, 60%, 35%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(45, 80%, 45%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(280, 60%, 45%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(15, 70%, 45%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(330, 60%, 45%);
+}
+
+body[data-level-color-mode="icon"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-icon {
+  color: hsl(180, 60%, 45%);
+}
+
+/* Dark theme adjustments for level colors */
+.theme-dark body[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) .tree-node-header {
+  filter: brightness(0.4) saturate(1.2);
+}
+
+.theme-dark body[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) .tree-node-header:hover {
+  filter: brightness(0.5) saturate(1.2);
+}
+
+.theme-dark body[data-level-color-mode="border"] .tree-node[data-level-index]:not([data-node-type="file"]) .tree-node-header {
+  border-left-color: currentColor;
+  filter: brightness(1.5);
+}
+
+.theme-dark body[data-level-color-mode="icon"] .tree-node[data-level-index]:not([data-node-type="file"]) .tree-node-icon {
+  filter: brightness(1.8) saturate(1.2);
+}

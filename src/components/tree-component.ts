@@ -124,6 +124,11 @@ export class TreeComponent {
     nodeEl.dataset.nodeId = node.id;
     nodeEl.dataset.nodeType = node.type;
 
+    // Add hierarchy level index for styling
+    if (node.metadata?.levelIndex !== undefined) {
+      nodeEl.dataset.levelIndex = String(node.metadata.levelIndex);
+    }
+
     // Store in cache for smart updates
     this.nodeElements.set(node.id, nodeEl);
 

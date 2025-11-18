@@ -202,29 +202,34 @@ export class TagTreeSettingsTab extends PluginSettingTab {
     sponsorButton.style.display = "flex";
     sponsorButton.style.alignItems = "center";
     sponsorButton.style.gap = "var(--size-2-2)";
-    sponsorButton.style.backgroundColor = "var(--background-modifier-hover)";
+    sponsorButton.style.backgroundColor = "var(--background-secondary)";
     sponsorButton.style.padding = "var(--size-2-3) var(--size-4-2)";
     sponsorButton.style.borderRadius = "var(--radius-s)";
     sponsorButton.style.border = "1px solid var(--background-modifier-border)";
     sponsorButton.style.cursor = "pointer";
 
     const heartIcon = sponsorButton.createSpan();
-    setIcon(heartIcon, "heart");
-    heartIcon.style.color = "#dc2626"; // Red color for heart
+    heartIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="#dc2626" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
     heartIcon.style.display = "flex";
+    heartIcon.style.alignItems = "center";
 
     sponsorButton.createSpan({ text: "Sponsor" });
     sponsorButton.addEventListener("click", () => {
       window.open("https://github.com/sponsors/fkloosterman", "_blank");
     });
 
-    // Buy me a coffee button with ko-fi logo
-    const kofiButton = buttonContainer.createEl("button", {
-      cls: "mod-cta"
-    });
+    // Buy me a coffee button with ko-fi logo and ko-fi blue background
+    const kofiButton = buttonContainer.createEl("button");
     kofiButton.style.display = "flex";
     kofiButton.style.alignItems = "center";
     kofiButton.style.gap = "var(--size-2-2)";
+    kofiButton.style.backgroundColor = "#13C3FF"; // Ko-fi brand blue
+    kofiButton.style.color = "white";
+    kofiButton.style.padding = "var(--size-2-3) var(--size-4-2)";
+    kofiButton.style.borderRadius = "var(--radius-s)";
+    kofiButton.style.border = "none";
+    kofiButton.style.cursor = "pointer";
+    kofiButton.style.fontWeight = "500";
 
     const kofiIcon = kofiButton.createDiv();
     kofiIcon.innerHTML = KOFI_SVG;

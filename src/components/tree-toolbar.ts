@@ -26,6 +26,7 @@ export class TreeToolbar {
   private showFiles: boolean = true;
   private savedViews: HierarchyConfig[];
   private currentViewName: string;
+  private isCollapsed: boolean = false;
 
   // File sort mode labels for dropdown
   private readonly fileSortModeLabels: Record<FileSortMode, string> = {
@@ -70,20 +71,44 @@ export class TreeToolbar {
     this.container = container;
     container.empty();
 
-    const toolbar = container.createDiv("nav-header");
+    // Create collapsible toolbar container
+    const details = container.createEl("details", {
+      cls: "tag-tree-toolbar"
+    });
 
-    // Row 0: View switcher (at the very top)
-    if (this.savedViews.length > 0 && this.callbacks.onViewChange) {
-      const viewSwitcherRow = toolbar.createDiv("nav-buttons-container");
-      this.renderViewSwitcher(viewSwitcherRow);
+    if (!this.isCollapsed) {
+      details.setAttribute("open", "");
     }
 
+    // Collapsible header with view name
+    const summary = details.createEl("summary", { cls: "tag-tree-toolbar-header" });
+
+    // View name with icon
+    const viewTitle = summary.createDiv({ cls: "tag-tree-toolbar-title" });
+    const viewIcon = viewTitle.createSpan();
+    setIcon(viewIcon, "layout-list");
+    viewTitle.createSpan({ text: this.currentViewName, cls: "tag-tree-toolbar-view-name" });
+
+    // View switcher (if multiple views exist)
+    if (this.savedViews.length > 1 && this.callbacks.onViewChange) {
+      const viewSwitcher = summary.createDiv({ cls: "tag-tree-toolbar-view-switcher" });
+      this.renderViewSwitcher(viewSwitcher);
+    }
+
+    // Track collapse state
+    details.addEventListener("toggle", () => {
+      this.isCollapsed = !details.hasAttribute("open");
+    });
+
+    // Toolbar content
+    const toolbar = details.createDiv("tag-tree-toolbar-content");
+
     // Row 1: Expansion controls
-    const expansionRow = toolbar.createDiv("nav-buttons-container");
+    const expansionRow = toolbar.createDiv("tag-tree-toolbar-row");
     this.renderExpansionControls(expansionRow);
 
     // Row 2: File visibility and sort controls
-    const controlsRow = toolbar.createDiv("nav-buttons-container");
+    const controlsRow = toolbar.createDiv("tag-tree-toolbar-row");
     this.renderFileVisibilityToggle(controlsRow);
     this.renderSortControl(controlsRow);
   }
@@ -91,18 +116,9 @@ export class TreeToolbar {
   /**
    * Render view switcher dropdown
    */
-  private renderViewSwitcher(row: HTMLElement): void {
-    // View label with icon
-    const viewLabel = row.createSpan("setting-item-name");
-    const viewIcon = viewLabel.createSpan();
-    viewIcon.style.marginRight = "4px";
-    viewIcon.style.display = "inline-flex";
-    viewIcon.style.alignItems = "center";
-    setIcon(viewIcon, "layout-list");
-    viewLabel.createSpan({ text: "View:" });
-
-    // View dropdown using DropdownComponent
-    new DropdownComponent(row)
+  private renderViewSwitcher(container: HTMLElement): void {
+    // View dropdown using DropdownComponent (compact, no label)
+    new DropdownComponent(container)
       .addOptions(
         Object.fromEntries(
           this.savedViews.map((view) => [view.name, view.name])
@@ -121,9 +137,12 @@ export class TreeToolbar {
    * Render expansion controls (collapse/expand buttons and depth selector)
    */
   private renderExpansionControls(row: HTMLElement): void {
+    // Button group
+    const buttonGroup = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
     // Collapse All button
-    new ButtonComponent(row)
-      .setButtonText("Collapse All")
+    new ButtonComponent(buttonGroup)
+      .setButtonText("Collapse")
       .setIcon("fold-vertical")
       .setTooltip("Collapse all nodes")
       .onClick(() => {
@@ -131,28 +150,27 @@ export class TreeToolbar {
       });
 
     // Expand All button
-    new ButtonComponent(row)
-      .setButtonText("Expand All")
+    new ButtonComponent(buttonGroup)
+      .setButtonText("Expand")
       .setIcon("unfold-vertical")
       .setTooltip("Expand all nodes")
       .onClick(() => {
         this.callbacks.onExpandAll();
       });
 
+    // Depth selector group
+    const depthGroup = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
     // Depth selector label
-    const depthLabel = row.createSpan("setting-item-name");
-    depthLabel.style.marginLeft = "8px";
-    depthLabel.style.marginRight = "4px";
-    const depthIcon = depthLabel.createSpan();
-    depthIcon.style.marginRight = "4px";
-    depthIcon.style.display = "inline-flex";
-    depthIcon.style.alignItems = "center";
+    const depthLabel = depthGroup.createSpan({ cls: "tag-tree-toolbar-label" });
+    const depthIcon = depthLabel.createSpan({ cls: "tag-tree-toolbar-icon" });
     setIcon(depthIcon, "layers");
     depthLabel.createSpan({ text: "Depth:" });
 
     // Create depth level buttons using clickable-icon
+    const depthButtons = depthGroup.createDiv({ cls: "tag-tree-toolbar-buttons" });
     for (const option of this.depthOptions) {
-      const btn = row.createEl("button", {
+      const btn = depthButtons.createEl("button", {
         cls: "clickable-icon",
         text: option.value === -1 ? "All" : String(option.value),
         attr: {
@@ -175,17 +193,16 @@ export class TreeToolbar {
    * Render file visibility toggle
    */
   private renderFileVisibilityToggle(row: HTMLElement): void {
+    const group = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
     // Label
-    const label = row.createSpan("setting-item-name");
-    const icon = label.createSpan();
-    icon.style.marginRight = "4px";
-    icon.style.display = "inline-flex";
-    icon.style.alignItems = "center";
+    const label = group.createSpan({ cls: "tag-tree-toolbar-label" });
+    const icon = label.createSpan({ cls: "tag-tree-toolbar-icon" });
     setIcon(icon, "file");
     label.createSpan({ text: "Show Files:" });
 
     // Toggle button using clickable-icon
-    const toggle = row.createEl("button", {
+    const toggle = group.createEl("button", {
       cls: this.showFiles ? "clickable-icon is-active" : "clickable-icon",
       attr: {
         "aria-label": "Toggle file visibility",
@@ -221,13 +238,11 @@ export class TreeToolbar {
    * Render the file sort control dropdown
    */
   private renderSortControl(row: HTMLElement): void {
+    const group = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
     // Sort label with icon
-    const sortLabel = row.createSpan("setting-item-name");
-    sortLabel.style.marginLeft = "8px";
-    const sortIcon = sortLabel.createSpan();
-    sortIcon.style.marginRight = "4px";
-    sortIcon.style.display = "inline-flex";
-    sortIcon.style.alignItems = "center";
+    const sortLabel = group.createSpan({ cls: "tag-tree-toolbar-label" });
+    const sortIcon = sortLabel.createSpan({ cls: "tag-tree-toolbar-icon" });
     setIcon(sortIcon, "arrow-up-down");
     sortLabel.createSpan({ text: "Sort files:" });
 
@@ -243,7 +258,7 @@ export class TreeToolbar {
       "size-asc",
     ];
 
-    new DropdownComponent(row)
+    new DropdownComponent(group)
       .addOptions(
         Object.fromEntries(
           fileSortModes.map((mode) => [mode, this.fileSortModeLabels[mode]])

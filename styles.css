@@ -15,13 +15,141 @@
 /* Navigation header (toolbar area) */
 .tag-tree-nav-header {
   flex-shrink: 0;
-  padding: var(--size-4-2);
   border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* Collapsible toolbar container */
+.tag-tree-toolbar {
+  background-color: var(--background-primary);
+}
+
+.tag-tree-toolbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--size-4-2) var(--size-4-3);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  background-color: var(--background-secondary);
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.tag-tree-toolbar-header:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.tag-tree-toolbar-header::before {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: var(--size-4-2);
+  border-style: solid;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent var(--text-muted);
+  transition: transform 0.1s ease;
+}
+
+.tag-tree-toolbar[open] > .tag-tree-toolbar-header::before {
+  transform: rotate(90deg);
+}
+
+.tag-tree-toolbar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-2);
+  font-weight: var(--font-semibold);
+  flex: 1;
+}
+
+.tag-tree-toolbar-title svg {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  color: var(--icon-color);
+}
+
+.tag-tree-toolbar-view-name {
+  color: var(--text-normal);
+}
+
+.tag-tree-toolbar-view-switcher {
+  margin-left: auto;
+}
+
+.tag-tree-toolbar-view-switcher .dropdown {
+  margin: 0;
+}
+
+.tag-tree-toolbar-content {
+  padding: var(--size-4-2) var(--size-4-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+}
+
+.tag-tree-toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-3);
+}
+
+.tag-tree-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-2);
+}
+
+.tag-tree-toolbar-label {
+  display: flex;
+  align-items: center;
+  gap: var(--size-2-1);
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tag-tree-toolbar-icon {
+  display: flex;
+  align-items: center;
+}
+
+.tag-tree-toolbar-icon svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+.tag-tree-toolbar-buttons {
+  display: flex;
+  gap: var(--size-2-1);
+}
+
+.tag-tree-toolbar-group button {
+  flex-shrink: 0;
+}
+
+.tag-tree-toolbar-group .dropdown {
+  margin: 0;
 }
 
 /* ========================================
    Settings Styles
    ======================================== */
+
+/* Settings section spacing */
+.vertical-tab-content .setting-item.setting-item-heading {
+  margin-top: var(--size-4-6);
+}
+
+.vertical-tab-content .setting-item.setting-item-heading:first-child {
+  margin-top: 0;
+}
+
+/* Support buttons styling */
+.tag-tree-support-buttons button:hover {
+  opacity: 0.9;
+}
 
 /* Collapsible sections */
 .tag-tree-collapsible-section {

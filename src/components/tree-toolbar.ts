@@ -130,6 +130,10 @@ export class TreeToolbar {
         if (this.callbacks.onViewChange) {
           this.callbacks.onViewChange(value);
         }
+        // Re-render toolbar to update header with new view name
+        if (this.container) {
+          this.render(this.container.parentElement!);
+        }
       });
   }
 

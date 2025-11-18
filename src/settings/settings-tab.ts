@@ -353,16 +353,8 @@ class ViewEditorModal extends Modal {
   private renderEditor(containerEl: HTMLElement): void {
     containerEl.empty();
 
-    // Basic Configuration Section (collapsible)
-    const basicSection = this.createCollapsibleSection(
-      containerEl,
-      "Basic Configuration",
-      "basic",
-      true
-    );
-
-    // View name
-    new Setting(basicSection)
+    // View name (at the top, outside of sections)
+    new Setting(containerEl)
       .setName("View name")
       .setDesc("Unique name for this view")
       .addText((text) =>
@@ -374,8 +366,16 @@ class ViewEditorModal extends Modal {
           })
       );
 
+    // Filter Options Section (collapsible)
+    const filterSection = this.createCollapsibleSection(
+      containerEl,
+      "Filter Options",
+      "basic",
+      true
+    );
+
     // Root tag filter (optional)
-    new Setting(basicSection)
+    new Setting(filterSection)
       .setName("Root tag filter")
       .setDesc(
         "Optional: Only include files with this tag (e.g., 'project' for #project)"

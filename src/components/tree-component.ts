@@ -129,11 +129,6 @@ export class TreeComponent {
       nodeEl.dataset.levelIndex = String(node.metadata.levelIndex);
     }
 
-    // Debug: Check if files are incorrectly getting levelIndex
-    if (node.type === "file" && node.metadata?.levelIndex !== undefined) {
-      console.warn(`[TagTree] File node incorrectly has levelIndex: ${node.metadata.levelIndex}`, node);
-    }
-
     // Store in cache for smart updates
     this.nodeElements.set(node.id, nodeEl);
 

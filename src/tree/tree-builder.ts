@@ -709,14 +709,11 @@ export class TreeBuilder {
       // Add file nodes for files that end at this level
       // Only add if showPartialMatches=true OR this is the last hierarchy level
       if (showPartialMatches || depth + 1 >= levels.length) {
-        console.log(`[TagTree] Adding ${filesForThisLevel.length} partial match files at hierarchy level ${depth}. showPartialMatches=${showPartialMatches}, isLastLevel=${depth + 1 >= levels.length}`);
         for (const file of filesForThisLevel) {
           const fileNode = createFileNode(file, treeDepth + 1, node.id);
           fileNode.parent = node;
           node.children.push(fileNode);
         }
-      } else {
-        console.log(`[TagTree] NOT adding ${filesForThisLevel.length} partial match files at hierarchy level ${depth}. showPartialMatches=${showPartialMatches}, isLastLevel=${depth + 1 >= levels.length}`);
       }
 
       // Recursively build next level for files that continue
@@ -927,14 +924,11 @@ export class TreeBuilder {
         // Add file nodes for files that end here
         // Only add if showPartialMatches=true OR this is the last hierarchy level
         if (showPartialMatches || hierarchyDepth + 1 >= levels.length) {
-          console.log(`[TagTree] (Multi-depth) Adding ${filesForThisLevel.length} partial match files at hierarchyDepth ${hierarchyDepth}. showPartialMatches=${showPartialMatches}, isLastLevel=${hierarchyDepth + 1 >= levels.length}`);
           for (const file of filesForThisLevel) {
             const fileNode = createFileNode(file, treeDepth + subDepth + 1, node.id);
             fileNode.parent = node;
             node.children.push(fileNode);
           }
-        } else {
-          console.log(`[TagTree] (Multi-depth) NOT adding ${filesForThisLevel.length} partial match files at hierarchyDepth ${hierarchyDepth}. showPartialMatches=${showPartialMatches}, isLastLevel=${hierarchyDepth + 1 >= levels.length}`);
         }
 
         // Recursively build next hierarchy level for files that continue

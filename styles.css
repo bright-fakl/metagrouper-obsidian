@@ -77,6 +77,37 @@
   background-color: var(--background-primary-alt);
 }
 
+/* Level header with controls */
+.tag-tree-level-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.tag-tree-level-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-tree-level-controls {
+  display: flex;
+  gap: var(--size-2-1);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.tag-tree-level-controls .clickable-icon {
+  padding: var(--size-2-1);
+}
+
+.tag-tree-level-controls .clickable-icon.is-disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* ========================================
    Tree Styles
    ======================================== */

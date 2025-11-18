@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Modal, Notice } from "obsidian";
+import { App, PluginSettingTab, Setting, Modal, Notice, setIcon } from "obsidian";
 import type TagTreePlugin from "../main";
 import {
   HierarchyConfig,
@@ -291,6 +291,21 @@ class ViewEditorModal extends Modal {
   // Working copy of the view being edited
   private workingView: HierarchyConfig;
 
+  // Track collapse state to preserve across re-renders
+  private collapseState: {
+    basic: boolean;
+    sorting: boolean;
+    colors: boolean;
+    levels: boolean;
+    levelItems: Map<number, boolean>;
+  } = {
+    basic: true,
+    sorting: true,
+    colors: false,
+    levels: true,
+    levelItems: new Map(),
+  };
+
   constructor(
     app: App,
     plugin: TagTreePlugin,
@@ -342,6 +357,7 @@ class ViewEditorModal extends Modal {
     const basicSection = this.createCollapsibleSection(
       containerEl,
       "Basic Configuration",
+      "basic",
       true
     );
 
@@ -377,6 +393,7 @@ class ViewEditorModal extends Modal {
     const sortingSection = this.createCollapsibleSection(
       containerEl,
       "Sorting & Display Options",
+      "sorting",
       true
     );
 
@@ -450,6 +467,7 @@ class ViewEditorModal extends Modal {
     const colorsSection = this.createCollapsibleSection(
       containerEl,
       "Hierarchy Level Colors",
+      "colors",
       false
     );
 
@@ -501,6 +519,7 @@ class ViewEditorModal extends Modal {
     const levelsSection = this.createCollapsibleSection(
       containerEl,
       "Hierarchy Levels",
+      "levels",
       true
     );
 
@@ -537,19 +556,30 @@ class ViewEditorModal extends Modal {
   }
 
   /**
-   * Create a collapsible section using details/summary
+   * Create a collapsible section using details/summary with state tracking
    */
   private createCollapsibleSection(
     parent: HTMLElement,
     title: string,
-    open: boolean = false
+    stateKey: string,
+    defaultOpen: boolean = false
   ): HTMLElement {
     const details = parent.createEl("details", { cls: "tag-tree-collapsible-section" });
-    if (open) {
+
+    // Use stored state if available, otherwise use default
+    const isOpen = this.collapseState[stateKey as keyof typeof this.collapseState] ?? defaultOpen;
+    if (isOpen) {
       details.setAttribute("open", "");
     }
+
     const summary = details.createEl("summary", { cls: "tag-tree-section-header" });
     summary.setText(title);
+
+    // Track state changes
+    details.addEventListener("toggle", () => {
+      (this.collapseState as any)[stateKey] = details.hasAttribute("open");
+    });
+
     const content = details.createDiv("tag-tree-section-content");
     return content;
   }
@@ -573,23 +603,146 @@ class ViewEditorModal extends Modal {
   }
 
   /**
+   * Create a collapsible section for a hierarchy level with controls in header
+   */
+  private createLevelCollapsible(
+    parent: HTMLElement,
+    title: string,
+    index: number,
+    onMoveUp: () => void,
+    onMoveDown: () => void,
+    onDelete: () => void
+  ): HTMLElement {
+    const details = parent.createEl("details", { cls: "tag-tree-collapsible-section" });
+
+    // Use stored state if available, otherwise default to collapsed
+    const isOpen = this.collapseState.levelItems.get(index) ?? false;
+    if (isOpen) {
+      details.setAttribute("open", "");
+    }
+
+    const summary = details.createEl("summary", { cls: "tag-tree-section-header tag-tree-level-header" });
+
+    // Add title text
+    const titleSpan = summary.createSpan({ cls: "tag-tree-level-title" });
+    titleSpan.setText(title);
+
+    // Add controls container
+    const controls = summary.createDiv({ cls: "tag-tree-level-controls" });
+
+    // Move up button
+    const moveUpBtn = controls.createEl("button", {
+      cls: "clickable-icon",
+      attr: {
+        "aria-label": "Move level up",
+        "title": "Move level up"
+      }
+    });
+    setIcon(moveUpBtn, "arrow-up");
+    if (index === 0) {
+      moveUpBtn.addClass("is-disabled");
+      moveUpBtn.setAttribute("disabled", "");
+    }
+    moveUpBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (index > 0) {
+        onMoveUp();
+      }
+    });
+
+    // Move down button
+    const moveDownBtn = controls.createEl("button", {
+      cls: "clickable-icon",
+      attr: {
+        "aria-label": "Move level down",
+        "title": "Move level down"
+      }
+    });
+    setIcon(moveDownBtn, "arrow-down");
+    if (index === this.workingView.levels.length - 1) {
+      moveDownBtn.addClass("is-disabled");
+      moveDownBtn.setAttribute("disabled", "");
+    }
+    moveDownBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (index < this.workingView.levels.length - 1) {
+        onMoveDown();
+      }
+    });
+
+    // Delete button
+    const deleteBtn = controls.createEl("button", {
+      cls: "clickable-icon",
+      attr: {
+        "aria-label": "Delete level",
+        "title": "Delete level"
+      }
+    });
+    setIcon(deleteBtn, "trash");
+    if (this.workingView.levels.length <= 1) {
+      deleteBtn.addClass("is-disabled");
+      deleteBtn.setAttribute("disabled", "");
+    }
+    deleteBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (this.workingView.levels.length > 1) {
+        onDelete();
+      } else {
+        new Notice("Cannot delete the last level");
+      }
+    });
+
+    // Track state changes
+    details.addEventListener("toggle", () => {
+      this.collapseState.levelItems.set(index, details.hasAttribute("open"));
+    });
+
+    const content = details.createDiv("tag-tree-section-content");
+    return content;
+  }
+
+  /**
    * Render the hierarchy levels list
    */
   private renderLevels(containerEl: HTMLElement): void {
     containerEl.empty();
 
     this.workingView.levels.forEach((level, index) => {
-      // Create collapsible level with descriptive header
+      // Create collapsible level with descriptive header and controls
       const levelTitle = this.getLevelTitle(level, index);
-      const levelContent = this.createCollapsibleSection(
+      const levelContent = this.createLevelCollapsible(
         containerEl,
         levelTitle,
-        true
+        index,
+        () => {
+          // Move up
+          [this.workingView.levels[index - 1], this.workingView.levels[index]] = [
+            this.workingView.levels[index],
+            this.workingView.levels[index - 1],
+          ];
+          this.renderEditor(this.contentEl);
+        },
+        () => {
+          // Move down
+          [this.workingView.levels[index], this.workingView.levels[index + 1]] = [
+            this.workingView.levels[index + 1],
+            this.workingView.levels[index],
+          ];
+          this.renderEditor(this.contentEl);
+        },
+        () => {
+          // Delete
+          this.workingView.levels.splice(index, 1);
+          this.renderEditor(this.contentEl);
+        }
       );
 
       const levelContainer = levelContent.createDiv("setting-item-level");
 
-      // Type selector with action buttons
+      // Type selector (without action buttons now - they're in the header)
       new Setting(levelContainer)
         .setName("Type")
         .addDropdown((dropdown) =>
@@ -612,49 +765,6 @@ class ViewEditorModal extends Modal {
                 });
               }
               this.renderEditor(this.contentEl); // Re-render to update
-            })
-        )
-        .addExtraButton((button) =>
-          button
-            .setIcon("arrow-up")
-            .setTooltip("Move up")
-            .setDisabled(index === 0)
-            .onClick(() => {
-              if (index > 0) {
-                [this.workingView.levels[index - 1], this.workingView.levels[index]] = [
-                  this.workingView.levels[index],
-                  this.workingView.levels[index - 1],
-                ];
-                this.renderEditor(this.contentEl); // Re-render
-              }
-            })
-        )
-        .addExtraButton((button) =>
-          button
-            .setIcon("arrow-down")
-            .setTooltip("Move down")
-            .setDisabled(index === this.workingView.levels.length - 1)
-            .onClick(() => {
-              if (index < this.workingView.levels.length - 1) {
-                [this.workingView.levels[index], this.workingView.levels[index + 1]] = [
-                  this.workingView.levels[index + 1],
-                  this.workingView.levels[index],
-                ];
-                this.renderEditor(this.contentEl); // Re-render
-              }
-            })
-        )
-        .addExtraButton((button) =>
-          button
-            .setIcon("trash")
-            .setTooltip("Delete level")
-            .onClick(() => {
-              if (this.workingView.levels.length > 1) {
-                this.workingView.levels.splice(index, 1);
-                this.renderEditor(this.contentEl); // Re-render
-              } else {
-                new Notice("Cannot delete the last level");
-              }
             })
         );
 

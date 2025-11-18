@@ -31,9 +31,16 @@ export class TreeBuilder {
    *
    * @param rootTag - Optional root tag to filter by (e.g., "project" will show only tags under #project)
    * @param sortMode - Sort mode to apply to tree nodes (default: "alpha-asc")
+   * @param config - Optional hierarchy config for accessing default file sort mode
+   * @param viewState - Optional view state for runtime file sort override
    * @returns Root tree node with hierarchical structure
    */
-  buildFromTags(rootTag?: string, sortMode: SortMode = "alpha-asc"): TreeNode {
+  buildFromTags(
+    rootTag?: string,
+    sortMode: SortMode = "alpha-asc",
+    config?: HierarchyConfig,
+    viewState?: ViewState
+  ): TreeNode {
     // Get all tags (filtered by root if specified)
     const allTags = rootTag
       ? this.indexer.getNestedTagsUnder(rootTag)
@@ -85,8 +92,14 @@ export class TreeBuilder {
     // Add file nodes to leaf tag nodes
     this.addFileNodes(nodeMap);
 
-    // Sort all children according to sort mode
-    this.sortTreeRecursive(root, sortMode);
+    // Sort all children - use new sorting if config provided, otherwise legacy
+    if (config && viewState !== undefined) {
+      // Use new sorting that separates file and node sorting
+      this.sortTreeRecursiveNew(root, config, viewState, 0);
+    } else {
+      // Legacy path - use old sorting (for backward compatibility)
+      this.sortTreeRecursive(root, sortMode);
+    }
 
     // Calculate aggregate file counts
     this.calculateFileCounts(root);
@@ -482,7 +495,9 @@ export class TreeBuilder {
       const tagLevel = config.levels[0] as TagHierarchyLevel;
       return this.buildFromTags(
         config.rootTag?.replace(/^#/, ""),
-        config.defaultNodeSortMode || "alpha-asc"
+        config.defaultNodeSortMode || "alpha-asc",
+        config,
+        viewState
       );
     }
 

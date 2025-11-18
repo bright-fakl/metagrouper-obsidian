@@ -486,12 +486,20 @@ class ViewEditorModal extends Modal {
       new Setting(containerEl)
         .setName("File color (optional)")
         .setDesc("Custom color for file nodes (leave empty for no color)")
-        .addText((text) =>
-          text
-            .setPlaceholder("e.g., hsl(0, 0%, 90%)")
-            .setValue(this.workingView.fileColor || "")
+        .addColorPicker((color) =>
+          color
+            .setValue(this.workingView.fileColor || "#ffffff")
             .onChange((value) => {
-              this.workingView.fileColor = value.trim() || undefined;
+              this.workingView.fileColor = value || undefined;
+            })
+        )
+        .addExtraButton((button) =>
+          button
+            .setIcon("reset")
+            .setTooltip("Clear color")
+            .onClick(() => {
+              this.workingView.fileColor = undefined;
+              this.renderEditor(this.contentEl);
             })
         );
     }
@@ -724,15 +732,24 @@ class ViewEditorModal extends Modal {
 
       // Level color (only show if level colors are enabled for this view)
       if (this.workingView.enableLevelColors) {
+        const defaultColor = DEFAULT_LEVEL_COLORS[index % DEFAULT_LEVEL_COLORS.length];
         new Setting(levelContainer)
           .setName("Level color (optional)")
-          .setDesc(`Custom color for level ${index + 1} (leave empty for default palette color)`)
-          .addText((text) =>
-            text
-              .setPlaceholder(DEFAULT_LEVEL_COLORS[index % DEFAULT_LEVEL_COLORS.length])
-              .setValue(level.color || "")
+          .setDesc(`Custom color for level ${index + 1} (default: ${defaultColor})`)
+          .addColorPicker((color) =>
+            color
+              .setValue(level.color || defaultColor)
               .onChange((value) => {
-                level.color = value.trim() || undefined;
+                level.color = value;
+              })
+          )
+          .addExtraButton((button) =>
+            button
+              .setIcon("reset")
+              .setTooltip("Use default color")
+              .onClick(() => {
+                level.color = undefined;
+                this.renderEditor(this.contentEl);
               })
           );
       }

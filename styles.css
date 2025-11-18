@@ -608,38 +608,27 @@
    Hierarchy Level Colors (Per-View)
    ======================================== */
 
-/* Default color palette (fallbacks if no custom colors set) */
-.tag-tree-content[data-level-color-mode] {
-  --default-level-0-color: hsl(210, 70%, 85%); /* Soft blue */
-  --default-level-1-color: hsl(150, 60%, 85%); /* Soft green */
-  --default-level-2-color: hsl(45, 80%, 85%);  /* Soft yellow */
-  --default-level-3-color: hsl(280, 60%, 85%); /* Soft purple */
-  --default-level-4-color: hsl(15, 70%, 85%);  /* Soft orange */
-  --default-level-5-color: hsl(330, 60%, 85%); /* Soft pink */
-  --default-level-6-color: hsl(180, 60%, 85%); /* Soft cyan */
-}
-
-/* Background mode - use CSS variables or default palette */
+/* Background mode - use CSS variables set by view.ts */
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-0-color, var(--default-level-0-color));
+  background-color: var(--level-0-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-1-color, var(--default-level-1-color));
+  background-color: var(--level-1-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-2-color, var(--default-level-2-color));
+  background-color: var(--level-2-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-3-color, var(--default-level-3-color));
+  background-color: var(--level-3-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-4-color, var(--default-level-4-color));
+  background-color: var(--level-4-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-5-color, var(--default-level-5-color));
+  background-color: var(--level-5-color);
 }
 .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-header {
-  background-color: var(--level-6-color, var(--default-level-6-color));
+  background-color: var(--level-6-color);
 }
 
 /* Hover effect for background mode */
@@ -654,31 +643,31 @@
 
 /* Border mode */
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-0-color, hsl(210, 70%, 55%));
+  border-left: 3px solid var(--level-0-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-1-color, hsl(150, 60%, 45%));
+  border-left: 3px solid var(--level-1-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-2-color, hsl(45, 80%, 55%));
+  border-left: 3px solid var(--level-2-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-3-color, hsl(280, 60%, 55%));
+  border-left: 3px solid var(--level-3-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-4-color, hsl(15, 70%, 55%));
+  border-left: 3px solid var(--level-4-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-5-color, hsl(330, 60%, 55%));
+  border-left: 3px solid var(--level-5-color);
   padding-left: 5px;
 }
 .tag-tree-content[data-level-color-mode="border"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-header {
-  border-left: 3px solid var(--level-6-color, hsl(180, 60%, 55%));
+  border-left: 3px solid var(--level-6-color);
   padding-left: 5px;
 }
 
@@ -690,25 +679,25 @@
 
 /* Icon mode */
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-0-color, hsl(210, 70%, 45%));
+  color: var(--level-0-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-1-color, hsl(150, 60%, 35%));
+  color: var(--level-1-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-2-color, hsl(45, 80%, 45%));
+  color: var(--level-2-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-3-color, hsl(280, 60%, 45%));
+  color: var(--level-3-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-4-color, hsl(15, 70%, 45%));
+  color: var(--level-4-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-5-color, hsl(330, 60%, 45%));
+  color: var(--level-5-color);
 }
 .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) .tree-node-icon {
-  color: var(--level-6-color, hsl(180, 60%, 45%));
+  color: var(--level-6-color);
 }
 
 /* File color in icon mode */

@@ -335,13 +335,27 @@ export class TagTreeView extends ItemView {
 
     // Apply custom colors as CSS variables
     if (viewConfig.enableLevelColors) {
+      // Import default colors from plugin-settings
+      const DEFAULT_LEVEL_COLORS = [
+        "hsl(210, 70%, 85%)",  // Soft blue
+        "hsl(150, 60%, 85%)",  // Soft green
+        "hsl(45, 80%, 85%)",   // Soft yellow
+        "hsl(280, 60%, 85%)",  // Soft purple
+        "hsl(15, 70%, 85%)",   // Soft orange
+        "hsl(330, 60%, 85%)",  // Soft pink
+        "hsl(180, 60%, 85%)",  // Soft cyan
+      ];
+
       viewConfig.levels.forEach((level, index) => {
-        if (level.color) {
-          container.style.setProperty(`--level-${index}-color`, level.color);
-        }
+        // Use custom color if set, otherwise use default palette color
+        const color = level.color || DEFAULT_LEVEL_COLORS[index % DEFAULT_LEVEL_COLORS.length];
+        container.style.setProperty(`--level-${index}-color`, color);
       });
+
       if (viewConfig.fileColor) {
         container.style.setProperty('--file-color', viewConfig.fileColor);
+      } else {
+        container.style.removeProperty('--file-color');
       }
     } else {
       // Clear CSS variables if colors are disabled

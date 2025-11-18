@@ -329,8 +329,10 @@ export class TagTreeView extends ItemView {
     // Apply level color mode to the tree container
     if (viewConfig.enableLevelColors && viewConfig.levelColorMode && viewConfig.levelColorMode !== "none") {
       container.setAttribute("data-level-color-mode", viewConfig.levelColorMode);
+      console.log("[TagTree] Setting color mode:", viewConfig.levelColorMode);
     } else {
       container.removeAttribute("data-level-color-mode");
+      console.log("[TagTree] Level colors disabled or mode is none");
     }
 
     // Apply custom colors as CSS variables
@@ -350,10 +352,12 @@ export class TagTreeView extends ItemView {
         // Use custom color if set, otherwise use default palette color
         const color = level.color || DEFAULT_LEVEL_COLORS[index % DEFAULT_LEVEL_COLORS.length];
         container.style.setProperty(`--level-${index}-color`, color);
+        console.log(`[TagTree] Setting --level-${index}-color:`, color);
       });
 
       if (viewConfig.fileColor) {
         container.style.setProperty('--file-color', viewConfig.fileColor);
+        console.log("[TagTree] Setting file color:", viewConfig.fileColor);
       } else {
         container.style.removeProperty('--file-color');
       }

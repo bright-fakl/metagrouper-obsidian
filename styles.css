@@ -1,5 +1,18 @@
 /* Tag Tree Plugin Styles - Matching Obsidian's native file explorer */
 
+/* ========================================
+   Settings Styles
+   ======================================== */
+
+/* Hierarchy level item separator */
+.setting-item-level {
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background-color: var(--background-primary-alt);
+}
+
 /* Main container */
 .tag-tree-container {
   padding: 0;

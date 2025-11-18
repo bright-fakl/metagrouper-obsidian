@@ -31,8 +31,6 @@ export class TagTreeSettingsTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Tag Tree Settings" });
-
     // Default view selector
     this.renderDefaultViewSelector(containerEl);
 
@@ -69,9 +67,9 @@ export class TagTreeSettingsTab extends PluginSettingTab {
    * Render the list of saved views
    */
   private renderSavedViewsList(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: "Saved Views" });
+    new Setting(containerEl).setHeading().setName("Saved Views");
 
-    const listContainer = containerEl.createDiv("tag-tree-views-list");
+    const listContainer = containerEl.createDiv();
 
     this.plugin.settings.savedViews.forEach((view, index) => {
       const viewSetting = new Setting(listContainer)
@@ -158,7 +156,7 @@ export class TagTreeSettingsTab extends PluginSettingTab {
    * Render import/export section
    */
   private renderImportExport(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: "Import/Export" });
+    new Setting(containerEl).setHeading().setName("Import/Export");
 
     new Setting(containerEl)
       .setName("Export all views")
@@ -359,6 +357,9 @@ class ViewEditorModal extends Modal {
   private renderEditor(containerEl: HTMLElement): void {
     containerEl.empty();
 
+    // Basic Configuration Section
+    new Setting(containerEl).setHeading().setName("Basic Configuration");
+
     // View name
     new Setting(containerEl)
       .setName("View name")
@@ -386,6 +387,9 @@ class ViewEditorModal extends Modal {
             this.workingView.rootTag = value.trim() || undefined;
           })
       );
+
+    // Sorting and Display Options Section
+    new Setting(containerEl).setHeading().setName("Sorting & Display Options");
 
     // Default node sort mode
     new Setting(containerEl)
@@ -454,9 +458,8 @@ class ViewEditorModal extends Modal {
       );
 
     // Level colors section
-    containerEl.createEl("h3", { text: "Hierarchy Level Colors" });
+    new Setting(containerEl).setHeading().setName("Hierarchy Level Colors");
 
-    // Enable level colors
     // Color mode dropdown (replaces enable toggle + mode dropdown)
     new Setting(containerEl)
       .setName("Level color mode")
@@ -502,22 +505,29 @@ class ViewEditorModal extends Modal {
     }
 
     // Hierarchy levels section
-    containerEl.createEl("h3", { text: "Hierarchy Levels" });
-    containerEl.createEl("p", {
-      text: "Define how files are grouped at each level (top to bottom)",
-      cls: "setting-item-description",
-    });
+    new Setting(containerEl).setHeading().setName("Hierarchy Levels");
 
-    const levelsContainer = containerEl.createDiv("tag-tree-levels-container");
+    new Setting(containerEl)
+      .setName("")
+      .setDesc("Define how files are grouped at each level (top to bottom)");
+
+    const levelsContainer = containerEl.createDiv();
     this.renderLevels(levelsContainer);
 
     // Save/Cancel buttons
     const buttonsContainer = containerEl.createDiv("modal-button-container");
+    buttonsContainer.style.display = "flex";
+    buttonsContainer.style.justifyContent = "flex-end";
+    buttonsContainer.style.gap = "8px";
+    buttonsContainer.style.marginTop = "16px";
+
     new Setting(buttonsContainer)
       .addButton((button) =>
-        button.setButtonText("Cancel").onClick(() => {
-          this.close();
-        })
+        button
+          .setButtonText("Cancel")
+          .onClick(() => {
+            this.close();
+          })
       )
       .addButton((button) =>
         button
@@ -536,10 +546,9 @@ class ViewEditorModal extends Modal {
     containerEl.empty();
 
     this.workingView.levels.forEach((level, index) => {
-      const levelContainer = containerEl.createDiv("tag-tree-level-item");
-      levelContainer.createEl("h4", { text: `Level ${index + 1}` });
+      const levelContainer = containerEl.createDiv("setting-item-level");
 
-      // Type selector
+      // Type selector with action buttons
       new Setting(levelContainer)
         .setName("Type")
         .addDropdown((dropdown) =>
@@ -568,6 +577,7 @@ class ViewEditorModal extends Modal {
           button
             .setIcon("arrow-up")
             .setTooltip("Move up")
+            .setDisabled(index === 0)
             .onClick(() => {
               if (index > 0) {
                 [this.workingView.levels[index - 1], this.workingView.levels[index]] = [
@@ -582,6 +592,7 @@ class ViewEditorModal extends Modal {
           button
             .setIcon("arrow-down")
             .setTooltip("Move down")
+            .setDisabled(index === this.workingView.levels.length - 1)
             .onClick(() => {
               if (index < this.workingView.levels.length - 1) {
                 [this.workingView.levels[index], this.workingView.levels[index + 1]] = [

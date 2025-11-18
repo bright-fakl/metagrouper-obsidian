@@ -335,11 +335,15 @@ export function validateHierarchyConfig(
 
   // Validate that tag levels don't overlap
   if (Array.isArray(config.levels)) {
-    const tagLevels = config.levels.filter((level: any) => level.type === "tag");
-    for (let i = 0; i < tagLevels.length; i++) {
-      for (let j = i + 1; j < tagLevels.length; j++) {
-        const level1 = tagLevels[i] as TagHierarchyLevel;
-        const level2 = tagLevels[j] as TagHierarchyLevel;
+    // Build array of tag levels with their original indices
+    const tagLevelsWithIndices = config.levels
+      .map((level: any, index: number) => ({ level, index }))
+      .filter(({ level }: { level: any }) => level.type === "tag");
+
+    for (let i = 0; i < tagLevelsWithIndices.length; i++) {
+      for (let j = i + 1; j < tagLevelsWithIndices.length; j++) {
+        const { level: level1, index: index1 } = tagLevelsWithIndices[i];
+        const { level: level2, index: index2 } = tagLevelsWithIndices[j];
 
         // Check if one key is a prefix of the other (including empty string)
         const key1 = level1.key || "";
@@ -348,8 +352,8 @@ export function validateHierarchyConfig(
         // Empty string overlaps with everything
         if (key1 === "" || key2 === "") {
           if (key1 !== key2) { // Both empty is OK (same key)
-            const emptyLevelIndex = key1 === "" ? i : j;
-            const otherLevelIndex = key1 === "" ? j : i;
+            const emptyLevelIndex = key1 === "" ? index1 : index2;
+            const otherLevelIndex = key1 === "" ? index2 : index1;
             errors.push(
               `Level ${emptyLevelIndex + 1} (all tags) overlaps with Level ${otherLevelIndex + 1}. ` +
               `A level with key="" (all tags) cannot coexist with other tag levels.`
@@ -357,7 +361,7 @@ export function validateHierarchyConfig(
           }
         } else if (key1.startsWith(key2 + "/") || key2.startsWith(key1 + "/") || key1 === key2) {
           errors.push(
-            `Level ${i + 1} (tag key="${key1}") overlaps with Level ${j + 1} (tag key="${key2}"). ` +
+            `Level ${index1 + 1} (tag key="${key1}") overlaps with Level ${index2 + 1} (tag key="${key2}"). ` +
             `Tag levels must be non-overlapping (e.g., "project" and "status" are OK, but "project" and "project/work" are not).`
           );
         }

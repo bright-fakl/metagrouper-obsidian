@@ -38,8 +38,6 @@ export type FileSortMode =
   | "created-asc"
   | "modified-desc"
   | "modified-asc"
-  | "accessed-desc"
-  | "accessed-asc"
   | "size-desc"
   | "size-asc"
   | "none";

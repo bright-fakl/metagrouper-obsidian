@@ -35,8 +35,6 @@ export class TreeToolbar {
     "created-asc": "Created ↑",
     "modified-desc": "Modified ↓",
     "modified-asc": "Modified ↑",
-    "accessed-desc": "Accessed ↓",
-    "accessed-asc": "Accessed ↑",
     "size-desc": "Size ↓",
     "size-asc": "Size ↑",
     "none": "Unsorted",
@@ -257,8 +255,6 @@ export class TreeToolbar {
       "created-asc",
       "modified-desc",
       "modified-asc",
-      "accessed-desc",
-      "accessed-asc",
       "size-desc",
       "size-asc",
     ];

@@ -410,8 +410,6 @@ class ViewEditorModal extends Modal {
           .addOption("created-asc", "Created (Oldest first)")
           .addOption("modified-desc", "Modified (Newest first)")
           .addOption("modified-asc", "Modified (Oldest first)")
-          .addOption("accessed-desc", "Accessed (Most recent)")
-          .addOption("accessed-asc", "Accessed (Least recent)")
           .addOption("size-desc", "Size (Largest first)")
           .addOption("size-asc", "Size (Smallest first)")
           .addOption("none", "Unsorted")

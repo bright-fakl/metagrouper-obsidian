@@ -398,14 +398,6 @@ export class TreeBuilder {
         case "modified-desc":
           return fileB.stat.mtime - fileA.stat.mtime;
 
-        case "accessed-asc":
-          // Obsidian doesn't expose atime, use mtime as fallback
-          return fileA.stat.mtime - fileB.stat.mtime;
-
-        case "accessed-desc":
-          // Obsidian doesn't expose atime, use mtime as fallback
-          return fileB.stat.mtime - fileA.stat.mtime;
-
         case "size-asc":
           return fileA.stat.size - fileB.stat.size;
 

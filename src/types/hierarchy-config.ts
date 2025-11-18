@@ -94,10 +94,7 @@ export interface HierarchyConfig {
   /** Default sort mode for file nodes */
   defaultFileSortMode?: FileSortMode;
 
-  /** Enable hierarchy level coloring for this view */
-  enableLevelColors?: boolean;
-
-  /** How to apply level colors (background, border, icon, or none) */
+  /** How to apply level colors (none, background, border, or icon) */
   levelColorMode?: LevelColorMode;
 
   /** Optional custom color for file nodes (CSS color value) */

@@ -95,6 +95,27 @@ export function migrateSettings(settings: TagTreeSettings): void {
     }
   });
 
+  // Migrate per-view enableLevelColors to levelColorMode
+  settings.savedViews = settings.savedViews.map((view: any) => {
+    if ('enableLevelColors' in view) {
+      // If enableLevelColors was true and no levelColorMode, set to "background" (old default)
+      if (view.enableLevelColors && !view.levelColorMode) {
+        view.levelColorMode = "background";
+      }
+      // If enableLevelColors was false, set to "none"
+      if (!view.enableLevelColors) {
+        view.levelColorMode = "none";
+      }
+      // Remove the old field
+      delete view.enableLevelColors;
+    }
+    // Set default if still missing
+    if (!view.levelColorMode) {
+      view.levelColorMode = "none";
+    }
+    return view;
+  });
+
   // Remove old global level color settings (now per-view)
   if ('enableLevelColors' in settings) {
     delete (settings as any).enableLevelColors;

@@ -327,7 +327,7 @@ export class TagTreeView extends ItemView {
     }
 
     // Apply level color mode to the tree container
-    if (viewConfig.enableLevelColors && viewConfig.levelColorMode && viewConfig.levelColorMode !== "none") {
+    if (viewConfig.levelColorMode && viewConfig.levelColorMode !== "none") {
       container.setAttribute("data-level-color-mode", viewConfig.levelColorMode);
     } else {
       container.removeAttribute("data-level-color-mode");
@@ -341,7 +341,7 @@ export class TagTreeView extends ItemView {
     }
 
     // Apply custom colors as CSS variables
-    if (viewConfig.enableLevelColors) {
+    if (viewConfig.levelColorMode && viewConfig.levelColorMode !== "none") {
       // Default colors (hex format for compatibility)
       const DEFAULT_LEVEL_COLORS = [
         "#b3d9ff",  // Soft blue

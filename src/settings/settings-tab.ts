@@ -326,9 +326,9 @@ class ViewEditorModal extends Modal {
     // Create working copy
     if (view) {
       this.workingView = JSON.parse(JSON.stringify(view));
-      // Fix missing levelColorMode if colors are enabled
-      if (this.workingView.enableLevelColors && !this.workingView.levelColorMode) {
-        this.workingView.levelColorMode = "background";
+      // Set default levelColorMode if not set
+      if (!this.workingView.levelColorMode) {
+        this.workingView.levelColorMode = "none";
       }
     } else {
       // Create new view with defaults
@@ -457,40 +457,25 @@ class ViewEditorModal extends Modal {
     containerEl.createEl("h3", { text: "Hierarchy Level Colors" });
 
     // Enable level colors
+    // Color mode dropdown (replaces enable toggle + mode dropdown)
     new Setting(containerEl)
-      .setName("Enable level colors")
-      .setDesc("Color-code nodes by their hierarchy level")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.workingView.enableLevelColors ?? false)
+      .setName("Level color mode")
+      .setDesc("How to apply hierarchy level colors (or none to disable)")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOption("none", "None (disabled)")
+          .addOption("background", "Background")
+          .addOption("border", "Left border")
+          .addOption("icon", "Icon color")
+          .setValue(this.workingView.levelColorMode || "none")
           .onChange((value) => {
-            this.workingView.enableLevelColors = value;
-            // Set default color mode if enabling and not already set
-            if (value && !this.workingView.levelColorMode) {
-              this.workingView.levelColorMode = "background";
-            }
+            this.workingView.levelColorMode = value as LevelColorMode;
             this.renderEditor(this.contentEl); // Re-render to show/hide color options
           })
       );
 
-    // Color mode (only show if enabled)
-    if (this.workingView.enableLevelColors) {
-      new Setting(containerEl)
-        .setName("Color mode")
-        .setDesc("How to apply hierarchy level colors")
-        .addDropdown((dropdown) =>
-          dropdown
-            .addOption("none", "None")
-            .addOption("background", "Background")
-            .addOption("border", "Left border")
-            .addOption("icon", "Icon color")
-            .setValue(this.workingView.levelColorMode || "background")
-            .onChange((value) => {
-              this.workingView.levelColorMode = value as LevelColorMode;
-            })
-        );
-
-      // File color
+    // File color (only show if colors are enabled)
+    if (this.workingView.levelColorMode && this.workingView.levelColorMode !== "none") {
       new Setting(containerEl)
         .setName("File color (optional)")
         .setDesc("Custom color for file nodes (no color by default)")
@@ -743,7 +728,7 @@ class ViewEditorModal extends Modal {
         });
 
       // Level color (only show if level colors are enabled for this view)
-      if (this.workingView.enableLevelColors) {
+      if (this.workingView.levelColorMode && this.workingView.levelColorMode !== "none") {
         const defaultColor = DEFAULT_LEVEL_COLORS[index % DEFAULT_LEVEL_COLORS.length];
         new Setting(levelContainer)
           .setName("Level color (optional)")

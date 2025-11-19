@@ -2,7 +2,7 @@ import { App, TFile } from "obsidian";
 import { VaultIndexer } from "../indexer/vault-indexer";
 import {
   FilterConfig,
-  FilterGroup,
+  LabeledFilter,
   Filter,
   TagFilter,
   PropertyExistsFilter,
@@ -23,17 +23,22 @@ import {
   isSameDay,
   getAgeInDays,
 } from "./filter-utils";
+import { ExpressionParser } from "./expression-parser";
+import { ExpressionEvaluator } from "./expression-evaluator";
 
 /**
  * FilterEvaluator - Evaluates filter configurations against files
  *
  * Responsibilities:
- * - Evaluate filter groups with AND/OR logic
+ * - Parse and evaluate boolean expressions
  * - Evaluate individual filters with NOT support
  * - Handle all filter types (tag, property, file metadata, links, bookmarks)
  * - Gracefully handle missing data and invalid filters
  */
 export class FilterEvaluator {
+  private expressionParser = new ExpressionParser();
+  private expressionEvaluator = new ExpressionEvaluator();
+
   constructor(
     private app: App,
     private indexer: VaultIndexer
@@ -44,41 +49,39 @@ export class FilterEvaluator {
    * Returns true if file matches the filter configuration
    */
   evaluateFilters(file: TFile, filterConfig?: FilterConfig): boolean {
-    if (!filterConfig || !filterConfig.groups || filterConfig.groups.length === 0) {
+    if (!filterConfig || !filterConfig.filters || filterConfig.filters.length === 0) {
       return true; // No filters = show all files
     }
 
-    const enabledGroups = filterConfig.groups.filter((group) => group.enabled !== false);
-
-    if (enabledGroups.length === 0) {
-      return true; // All groups disabled = show all files
-    }
-
-    const groupResults = enabledGroups.map((group) => this.evaluateGroup(file, group));
-
-    // Combine group results with OR or AND
-    return filterConfig.combineWithOr
-      ? groupResults.some((r) => r) // OR: any group matches
-      : groupResults.every((r) => r); // AND: all groups match
-  }
-
-  /**
-   * Evaluate a filter group against a file
-   * All filters in the group must match (AND logic)
-   */
-  private evaluateGroup(file: TFile, group: FilterGroup): boolean {
-    if (!group.filters || group.filters.length === 0) {
-      return true; // Empty group matches everything
-    }
-
-    const enabledFilters = group.filters.filter((f) => f.enabled !== false);
+    const enabledFilters = filterConfig.filters.filter((lf) => lf.enabled !== false);
 
     if (enabledFilters.length === 0) {
-      return true; // All filters disabled = match everything
+      return true; // All filters disabled = show all files
     }
 
-    // All filters in group must match (AND)
-    return enabledFilters.every((filter) => this.evaluateFilter(file, filter));
+    // Parse expression
+    let expression = filterConfig.expression?.trim() || '';
+    if (!expression) {
+      // No expression provided - default to AND all filters
+      const labels = enabledFilters.map((lf) => lf.label);
+      expression = ExpressionEvaluator.generateDefaultExpression(labels);
+    }
+
+    const parseResult = this.expressionParser.parse(expression);
+    if (parseResult.errors.length > 0 || !parseResult.ast) {
+      console.warn('FilterEvaluator: Invalid expression, showing all files:', parseResult.errors);
+      return true; // Invalid expression = show all files (fail-safe)
+    }
+
+    // Evaluate each filter
+    const filterResults = new Map<string, boolean>();
+    for (const labeledFilter of enabledFilters) {
+      const result = this.evaluateFilter(file, labeledFilter.filter);
+      filterResults.set(labeledFilter.label, result);
+    }
+
+    // Evaluate expression with filter results
+    return this.expressionEvaluator.evaluate(parseResult.ast, filterResults);
   }
 
   /**

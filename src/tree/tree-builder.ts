@@ -520,7 +520,7 @@ export class TreeBuilder {
     if (this.shouldUseBuildFromTags(config)) {
       const tagLevel = config.levels[0] as TagHierarchyLevel;
       return this.buildFromTags(
-        config.rootTag?.replace(/^#/, ""),
+        tagLevel.key || undefined,
         config.defaultNodeSortMode || "alpha-asc",
         config,
         viewState

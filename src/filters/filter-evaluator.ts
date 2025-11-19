@@ -538,8 +538,32 @@ export class FilterEvaluator {
       count = links + embeds;
     } else {
       // Count backlinks
-      const backlinks = this.app.metadataCache.getBacklinksForFile(file);
-      count = backlinks ? Object.keys(backlinks.data).length : 0;
+      // Note: Obsidian doesn't provide a direct API for backlinks count
+      // We need to check all files and see which ones link to this file
+      const allFiles = this.app.vault.getMarkdownFiles();
+      count = 0;
+
+      for (const otherFile of allFiles) {
+        if (otherFile === file) continue;
+
+        const otherMetadata = this.app.metadataCache.getFileCache(otherFile);
+        if (!otherMetadata) continue;
+
+        // Check if this file links to our target file
+        const hasLink =
+          otherMetadata.links?.some(link => {
+            const linkedFile = this.app.metadataCache.getFirstLinkpathDest(link.link, otherFile.path);
+            return linkedFile?.path === file.path;
+          }) ||
+          otherMetadata.embeds?.some(embed => {
+            const linkedFile = this.app.metadataCache.getFirstLinkpathDest(embed.link, otherFile.path);
+            return linkedFile?.path === file.path;
+          });
+
+        if (hasLink) {
+          count++;
+        }
+      }
     }
 
     switch (filter.operator) {

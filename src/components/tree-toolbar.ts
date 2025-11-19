@@ -127,15 +127,20 @@ export class TreeToolbar {
       this.renderRefreshButton(refreshRow);
     }
 
+    // Interactive filter controls (for eye-selected filters)
+    if (this.currentViewConfig?.filters && this.currentViewConfig.filters.filters?.length > 0) {
+      const interactiveFilters = this.currentViewConfig.filters.filters.filter(
+        lf => lf.enabled !== false && lf.showInToolbar === true
+      );
+      if (interactiveFilters.length > 0) {
+        const filterControlsRow = toolbar.createDiv("tag-tree-toolbar-row");
+        this.renderInteractiveFilters(filterControlsRow, interactiveFilters);
+      }
+    }
+
     // Filter explanation section (collapsible, if view has filters)
     if (this.currentViewConfig?.filters && this.currentViewConfig.filters.filters?.length > 0) {
       this.renderFilterExplanation(toolbar);
-    }
-
-    // Toolbar filter controls (if configured for this view)
-    if (this.currentViewConfig?.toolbarFilterTypes && this.currentViewConfig.toolbarFilterTypes.length > 0) {
-      const filterRow = toolbar.createDiv("tag-tree-toolbar-row");
-      this.renderToolbarFilterControls(filterRow);
     }
   }
 
@@ -316,6 +321,46 @@ export class TreeToolbar {
   }
 
   /**
+   * Render interactive filter controls (for eye-selected filters)
+   */
+  private renderInteractiveFilters(container: HTMLElement, interactiveFilters: any[]): void {
+    const group = container.createDiv({ cls: "tag-tree-toolbar-group tag-tree-interactive-filters" });
+
+    const label = group.createSpan({ text: "Quick Filters: " });
+    label.style.marginRight = "var(--size-4-2)";
+    label.style.fontWeight = "600";
+
+    interactiveFilters.forEach((labeledFilter, index) => {
+      if (index > 0) {
+        group.createSpan({ text: " | " }).style.margin = "0 var(--size-2-2)";
+      }
+
+      const filterEl = group.createSpan({ cls: "tag-tree-quick-filter" });
+
+      // Filter label badge
+      const badge = filterEl.createSpan({ text: labeledFilter.label });
+      badge.style.display = "inline-block";
+      badge.style.padding = "2px 6px";
+      badge.style.marginRight = "4px";
+      badge.style.backgroundColor = "var(--interactive-accent)";
+      badge.style.color = "var(--text-on-accent)";
+      badge.style.borderRadius = "var(--radius-s)";
+      badge.style.fontSize = "0.85em";
+      badge.style.fontWeight = "600";
+
+      // Filter description
+      const desc = filterEl.createSpan({
+        text: this.getFilterDescription(labeledFilter.filter),
+        cls: "setting-item-description"
+      });
+      desc.style.fontSize = "0.9em";
+
+      // TODO: Add interactive controls here based on filter type
+      // For now, this shows the filter info - interactive controls can be added later
+    });
+  }
+
+  /**
    * Render filter explanation (collapsible)
    */
   private renderFilterExplanation(toolbar: HTMLElement): void {
@@ -359,21 +404,14 @@ export class TreeToolbar {
       }).style.fontFamily = "monospace";
     }
 
-    // Show each filter (only if showInToolbar is true and filter is enabled)
+    // Show ALL filters (not just eye-selected ones)
     const filtersListEl = content.createEl("ul");
-    const visibleFilters = filters.filters.filter(lf => lf.enabled !== false && lf.showInToolbar === true);
+    filters.filters.forEach((labeledFilter) => {
+      if (labeledFilter.enabled === false) return; // Skip disabled filters
 
-    if (visibleFilters.length === 0) {
-      filtersListEl.createEl("li", {
-        text: "No filters selected for display (click eye icon in settings to show filters here)",
-        cls: "setting-item-description"
-      });
-    } else {
-      visibleFilters.forEach((labeledFilter) => {
-        const filterText = `${labeledFilter.label}: ${this.getFilterDescription(labeledFilter.filter as any)}`;
-        filtersListEl.createEl("li", { text: filterText });
-      });
-    }
+      const filterText = `${labeledFilter.label}: ${this.getFilterDescription(labeledFilter.filter as any)}`;
+      filtersListEl.createEl("li", { text: filterText });
+    });
   }
 
   /**

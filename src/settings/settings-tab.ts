@@ -15,6 +15,29 @@ import {
 import { SortMode, FileSortMode } from "../types/view-state";
 import { DEFAULT_LEVEL_COLORS } from "./plugin-settings";
 import { KOFI_SVG } from "../assets/kofi-logo";
+import {
+  FilterConfig,
+  FilterGroup,
+  Filter,
+  FilterType,
+  FILTER_TYPE_METADATA,
+  TagFilter,
+  PropertyExistsFilter,
+  PropertyValueFilter,
+  FilePathFilter,
+  FileSizeFilter,
+  FileDateFilter,
+  LinkCountFilter,
+  BookmarkFilter,
+  STRING_OPERATORS,
+  NUMBER_OPERATORS,
+  DATE_OPERATORS,
+  BOOLEAN_OPERATORS,
+  ARRAY_OPERATORS,
+  SIZE_OPERATORS,
+  LINK_COUNT_OPERATORS,
+} from "../types/filters";
+import { generateFilterId } from "../filters/filter-utils";
 
 /**
  * Modal to display the changelog
@@ -498,16 +521,20 @@ class ViewEditorModal extends Modal {
   // Track collapse state to preserve across re-renders
   private collapseState: {
     basic: boolean;
+    filters: boolean;
     sorting: boolean;
     colors: boolean;
     levels: boolean;
     levelItems: Map<number, boolean>;
+    filterGroups: Map<string, boolean>;
   } = {
     basic: true,
+    filters: true,
     sorting: true,
     colors: false,
     levels: true,
     levelItems: new Map(),
+    filterGroups: new Map(),
   };
 
   constructor(
@@ -528,12 +555,25 @@ class ViewEditorModal extends Modal {
       if (!this.workingView.levelColorMode) {
         this.workingView.levelColorMode = "none";
       }
+      // Initialize filters if not present
+      if (!this.workingView.filters) {
+        this.workingView.filters = {
+          version: 1,
+          groups: [],
+          combineWithOr: true,
+        };
+      }
     } else {
       // Create new view with defaults
       this.workingView = createHierarchyConfig({
         name: "New View",
         levels: [createTagLevel({ key: "" })],
         showPartialMatches: false,
+        filters: {
+          version: 1,
+          groups: [],
+          combineWithOr: true,
+        },
       });
     }
   }
@@ -573,25 +613,18 @@ class ViewEditorModal extends Modal {
     // Filter Options Section (collapsible)
     const filterSection = this.createCollapsibleSection(
       containerEl,
-      "Filter Options",
-      "basic",
+      "Filters",
+      "filters",
       true
     );
 
-    // Root tag filter (optional)
+    // Description
     new Setting(filterSection)
-      .setName("Root tag filter")
-      .setDesc(
-        "Optional: Only include files with this tag (e.g., 'project' for #project)"
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("project")
-          .setValue(this.workingView.rootTag || "")
-          .onChange((value) => {
-            this.workingView.rootTag = value.trim() || undefined;
-          })
-      );
+      .setName("")
+      .setDesc("Filter which files are shown in this view. Filters within a group use AND logic.");
+
+    // Render filter UI
+    this.renderFilters(filterSection);
 
     // Sorting and Display Options Section (collapsible)
     const sortingSection = this.createCollapsibleSection(
@@ -1136,6 +1169,412 @@ class ViewEditorModal extends Modal {
   }
 
   /**
+   * Render the filters section
+   */
+  private renderFilters(container: HTMLElement): void {
+    const filtersContainer = container.createDiv({ cls: "tag-tree-filters-container" });
+
+    // Group combination mode
+    new Setting(filtersContainer)
+      .setName("Combine filter groups with")
+      .setDesc("How to combine multiple filter groups")
+      .addDropdown(dropdown => {
+        dropdown
+          .addOption("or", "OR (match any group)")
+          .addOption("and", "AND (match all groups)")
+          .setValue(this.workingView.filters!.combineWithOr ? "or" : "and")
+          .onChange(value => {
+            this.workingView.filters!.combineWithOr = value === "or";
+          });
+      });
+
+    // Filter groups
+    const groupsContainer = filtersContainer.createDiv({ cls: "tag-tree-filter-groups" });
+    this.renderFilterGroups(groupsContainer);
+
+    // Add filter group button
+    new Setting(filtersContainer)
+      .addButton(button => {
+        button
+          .setButtonText("+ Add Filter Group")
+          .onClick(() => {
+            const newGroup: FilterGroup = {
+              id: generateFilterId(),
+              filters: [],
+              enabled: true,
+            };
+            this.workingView.filters!.groups.push(newGroup);
+            this.renderEditor(this.contentEl);
+          });
+      });
+  }
+
+  /**
+   * Render all filter groups
+   */
+  private renderFilterGroups(container: HTMLElement): void {
+    container.empty();
+
+    if (!this.workingView.filters!.groups || this.workingView.filters!.groups.length === 0) {
+      container.createEl("p", {
+        text: "No filter groups. Files will not be filtered.",
+        cls: "setting-item-description",
+      });
+      return;
+    }
+
+    this.workingView.filters!.groups.forEach((group, groupIndex) => {
+      const groupContainer = container.createDiv({ cls: "tag-tree-filter-group" });
+
+      // Group header
+      const groupHeader = groupContainer.createDiv({ cls: "tag-tree-filter-group-header" });
+
+      new Setting(groupHeader)
+        .setName(`Filter Group ${groupIndex + 1}`)
+        .addText(text => {
+          text
+            .setPlaceholder("Group name (optional)")
+            .setValue(group.name || "")
+            .onChange(value => {
+              group.name = value.trim() || undefined;
+            });
+        })
+        .addExtraButton(button => {
+          button
+            .setIcon("trash")
+            .setTooltip("Delete group")
+            .onClick(() => {
+              this.workingView.filters!.groups.splice(groupIndex, 1);
+              this.renderEditor(this.contentEl);
+            });
+        });
+
+      // Filters in this group
+      const filtersListContainer = groupContainer.createDiv({ cls: "tag-tree-filter-list" });
+      this.renderFiltersList(filtersListContainer, group, groupIndex);
+
+      // Add filter button
+      new Setting(groupContainer)
+        .addButton(button => {
+          button
+            .setButtonText("+ Add Filter")
+            .onClick(() => {
+              this.showFilterTypeSelectModal(group);
+            });
+        });
+    });
+  }
+
+  /**
+   * Render filters list within a group
+   */
+  private renderFiltersList(container: HTMLElement, group: FilterGroup, groupIndex: number): void {
+    container.empty();
+
+    if (!group.filters || group.filters.length === 0) {
+      container.createEl("p", {
+        text: "No filters in this group.",
+        cls: "setting-item-description",
+      });
+      return;
+    }
+
+    group.filters.forEach((filter, filterIndex) => {
+      const filterContainer = container.createDiv({ cls: "tag-tree-filter-item" });
+      this.renderFilter(filterContainer, filter, group, filterIndex);
+    });
+  }
+
+  /**
+   * Render a single filter
+   */
+  private renderFilter(container: HTMLElement, filter: Filter, group: FilterGroup, filterIndex: number): void {
+    const setting = new Setting(container);
+
+    // Filter type label
+    const metadata = FILTER_TYPE_METADATA[filter.type];
+    setting.setName(metadata.name);
+
+    // NOT toggle
+    setting.addToggle(toggle => {
+      toggle
+        .setValue(filter.negate || false)
+        .setTooltip("Negate (NOT)")
+        .onChange(value => {
+          filter.negate = value;
+        });
+      // Add "NOT" label after checkbox
+      const toggleEl = toggle.toggleEl;
+      if (filter.negate) {
+        toggleEl.parentElement!.createSpan({ text: " NOT", cls: "tag-tree-filter-not-label" });
+      }
+    });
+
+    // Type-specific UI
+    switch (filter.type) {
+      case "tag":
+        this.renderTagFilterUI(setting, filter as TagFilter);
+        break;
+      case "property-exists":
+        this.renderPropertyExistsFilterUI(setting, filter as PropertyExistsFilter);
+        break;
+      case "property-value":
+        this.renderPropertyValueFilterUI(setting, filter as PropertyValueFilter);
+        break;
+      case "file-path":
+        this.renderFilePathFilterUI(setting, filter as FilePathFilter);
+        break;
+      case "file-size":
+        this.renderFileSizeFilterUI(setting, filter as FileSizeFilter);
+        break;
+      case "file-ctime":
+      case "file-mtime":
+        this.renderFileDateFilterUI(setting, filter as FileDateFilter);
+        break;
+      case "link-count":
+        this.renderLinkCountFilterUI(setting, filter as LinkCountFilter);
+        break;
+      case "bookmark":
+        this.renderBookmarkFilterUI(setting, filter as BookmarkFilter);
+        break;
+    }
+
+    // Delete button
+    setting.addExtraButton(button => {
+      button
+        .setIcon("trash")
+        .setTooltip("Delete filter")
+        .onClick(() => {
+          group.filters.splice(filterIndex, 1);
+          this.renderEditor(this.contentEl);
+        });
+    });
+  }
+
+  // Type-specific filter UI renderers
+
+  private renderTagFilterUI(setting: Setting, filter: TagFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Tag name (e.g., project)")
+        .setValue(filter.tag || "")
+        .onChange(value => {
+          filter.tag = value;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("prefix", "Prefix match")
+        .addOption("exact", "Exact match")
+        .addOption("contains", "Contains")
+        .setValue(filter.matchMode || "prefix")
+        .onChange(value => {
+          filter.matchMode = value as any;
+        });
+    });
+  }
+
+  private renderPropertyExistsFilterUI(setting: Setting, filter: PropertyExistsFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Property name")
+        .setValue(filter.property || "")
+        .onChange(value => {
+          filter.property = value;
+        });
+    });
+  }
+
+  private renderPropertyValueFilterUI(setting: Setting, filter: PropertyValueFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Property name")
+        .setValue(filter.property || "")
+        .onChange(value => {
+          filter.property = value;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      // Add operators based on property type
+      // For simplicity, show all string operators by default
+      STRING_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "equals")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Value")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = value;
+        });
+    });
+  }
+
+  private renderFilePathFilterUI(setting: Setting, filter: FilePathFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Path pattern (e.g., Projects/*)")
+        .setValue(filter.pattern || "")
+        .onChange(value => {
+          filter.pattern = value;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("wildcard", "Wildcard")
+        .addOption("regex", "Regex")
+        .setValue(filter.matchMode || "wildcard")
+        .onChange(value => {
+          filter.matchMode = value as any;
+        });
+    });
+  }
+
+  private renderFileSizeFilterUI(setting: Setting, filter: FileSizeFilter): void {
+    setting.addDropdown(dropdown => {
+      SIZE_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "gt")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Size (e.g., 1.5 MB)")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = parseFloat(value) || 0;
+        });
+    });
+  }
+
+  private renderFileDateFilterUI(setting: Setting, filter: FileDateFilter): void {
+    setting.addDropdown(dropdown => {
+      DATE_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "after")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Date (e.g., 2024-01-01, today, -7d)")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = value;
+        });
+    });
+  }
+
+  private renderLinkCountFilterUI(setting: Setting, filter: LinkCountFilter): void {
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("outlinks", "Outlinks")
+        .addOption("backlinks", "Backlinks")
+        .setValue(filter.linkType || "outlinks")
+        .onChange(value => {
+          filter.linkType = value as any;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      LINK_COUNT_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "gte")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Count")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = parseInt(value) || 0;
+        });
+    });
+  }
+
+  private renderBookmarkFilterUI(setting: Setting, filter: BookmarkFilter): void {
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("true", "Is bookmarked")
+        .addOption("false", "Is not bookmarked")
+        .setValue(String(filter.isBookmarked ?? true))
+        .onChange(value => {
+          filter.isBookmarked = value === "true";
+        });
+    });
+  }
+
+  /**
+   * Show modal to select filter type
+   */
+  private showFilterTypeSelectModal(group: FilterGroup): void {
+    const modal = new FilterTypeSelectModal(this.app, (filterType: FilterType) => {
+      const newFilter = this.createDefaultFilter(filterType);
+      group.filters.push(newFilter);
+      this.renderEditor(this.contentEl);
+    });
+    modal.open();
+  }
+
+  /**
+   * Create a default filter of the given type
+   */
+  private createDefaultFilter(type: FilterType): Filter {
+    const baseFilter = {
+      id: generateFilterId(),
+      enabled: true,
+      negate: false,
+    };
+
+    switch (type) {
+      case "tag":
+        return { ...baseFilter, type: "tag", tag: "", matchMode: "prefix" } as TagFilter;
+      case "property-exists":
+        return { ...baseFilter, type: "property-exists", property: "" } as PropertyExistsFilter;
+      case "property-value":
+        return { ...baseFilter, type: "property-value", property: "", operator: "equals", value: "" } as PropertyValueFilter;
+      case "file-path":
+        return { ...baseFilter, type: "file-path", pattern: "", matchMode: "wildcard" } as FilePathFilter;
+      case "file-size":
+        return { ...baseFilter, type: "file-size", operator: "gt", value: 0 } as FileSizeFilter;
+      case "file-ctime":
+        return { ...baseFilter, type: "file-ctime", operator: "after", value: "" } as FileDateFilter;
+      case "file-mtime":
+        return { ...baseFilter, type: "file-mtime", operator: "after", value: "" } as FileDateFilter;
+      case "link-count":
+        return { ...baseFilter, type: "link-count", linkType: "outlinks", operator: "gte", value: 0 } as LinkCountFilter;
+      case "bookmark":
+        return { ...baseFilter, type: "bookmark", isBookmarked: true } as BookmarkFilter;
+      default:
+        throw new Error(`Unknown filter type: ${type}`);
+    }
+  }
+
+  /**
    * Save the view
    */
   private saveView(): void {
@@ -1160,5 +1599,86 @@ class ViewEditorModal extends Modal {
     // Save
     this.onSave(this.workingView);
     this.close();
+  }
+}
+
+/**
+ * Modal to select a filter type
+ */
+class FilterTypeSelectModal extends Modal {
+  private onSelect: (filterType: FilterType) => void;
+
+  constructor(app: App, onSelect: (filterType: FilterType) => void) {
+    super(app);
+    this.onSelect = onSelect;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText("Select Filter Type");
+
+    contentEl.createEl("p", {
+      text: "Choose the type of filter to add:",
+      cls: "setting-item-description",
+    });
+
+    // Create a button for each filter type
+    const filterTypes: FilterType[] = [
+      "tag",
+      "property-exists",
+      "property-value",
+      "file-path",
+      "file-size",
+      "file-ctime",
+      "file-mtime",
+      "link-count",
+      "bookmark",
+    ];
+
+    const buttonsContainer = contentEl.createDiv({ cls: "tag-tree-filter-type-buttons" });
+    buttonsContainer.style.display = "grid";
+    buttonsContainer.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
+    buttonsContainer.style.gap = "var(--size-4-2)";
+    buttonsContainer.style.marginTop = "var(--size-4-4)";
+
+    filterTypes.forEach(filterType => {
+      const metadata = FILTER_TYPE_METADATA[filterType];
+
+      const button = buttonsContainer.createEl("button", { cls: "tag-tree-filter-type-button" });
+      button.style.padding = "var(--size-4-3)";
+      button.style.textAlign = "left";
+      button.style.border = "1px solid var(--background-modifier-border)";
+      button.style.borderRadius = "var(--radius-s)";
+      button.style.backgroundColor = "var(--background-secondary)";
+      button.style.cursor = "pointer";
+
+      const iconEl = button.createDiv();
+      setIcon(iconEl, metadata.icon);
+      iconEl.style.marginBottom = "var(--size-2-2)";
+
+      button.createEl("strong", { text: metadata.name });
+      button.createEl("div", {
+        text: metadata.description,
+        cls: "setting-item-description",
+      });
+
+      button.addEventListener("click", () => {
+        this.onSelect(filterType);
+        this.close();
+      });
+
+      button.addEventListener("mouseenter", () => {
+        button.style.backgroundColor = "var(--background-modifier-hover)";
+      });
+
+      button.addEventListener("mouseleave", () => {
+        button.style.backgroundColor = "var(--background-secondary)";
+      });
+    });
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
   }
 }

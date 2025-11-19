@@ -85,7 +85,7 @@ export class TagTreeView extends ItemView {
       await this.indexer.initialize();
 
       // Build tree builder
-      this.treeBuilder = new TreeBuilder(this.indexer);
+      this.treeBuilder = new TreeBuilder(this.app, this.indexer);
 
       // Initialize search utility
       this.obsidianSearch = new ObsidianSearch(this.app);

@@ -1,4 +1,4 @@
-import { TFile } from "obsidian";
+import { App, TFile } from "obsidian";
 import { VaultIndexer } from "../indexer/vault-indexer";
 import {
   TreeNode,
@@ -13,18 +13,22 @@ import {
   TagHierarchyLevel,
   PropertyHierarchyLevel,
 } from "../types/hierarchy-config";
+import { FilterEvaluator } from "../filters/filter-evaluator";
 
 /**
  * TreeBuilder - Transforms flat tag index into hierarchical tree structure
  *
  * Responsibilities:
  * - Transform flat tag index into hierarchical tree structure
- * - Support filtering by root tag
+ * - Support filtering via FilterEvaluator
  * - Generate tree nodes with metadata (file count, children)
  * - Sort nodes according to specified sort mode
  */
 export class TreeBuilder {
-  constructor(private indexer: VaultIndexer) {}
+  constructor(
+    private app: App,
+    private indexer: VaultIndexer
+  ) {}
 
   /**
    * Build a tree from nested tags
@@ -523,20 +527,14 @@ export class TreeBuilder {
       );
     }
 
-    // Get initial file set (optionally filtered by root tag)
+    // Get initial file set (optionally filtered by filters)
     const allFiles = this.indexer.getAllFiles();
     let files: TFile[];
 
-    if (config.rootTag) {
-      // Filter files that have the root tag
-      const normalizedRootTag = config.rootTag.toLowerCase().replace(/^#/, "");
-      files = allFiles.filter((file) => {
-        const tags = this.indexer.getFileTags(file);
-        return Array.from(tags).some(
-          (tag) =>
-            tag === normalizedRootTag || tag.startsWith(normalizedRootTag + "/")
-        );
-      });
+    if (config.filters && config.filters.groups && config.filters.groups.length > 0) {
+      // Apply filters using FilterEvaluator
+      const filterEvaluator = new FilterEvaluator(this.app, this.indexer);
+      files = allFiles.filter((file) => filterEvaluator.evaluateFilters(file, config.filters));
     } else {
       files = allFiles;
     }

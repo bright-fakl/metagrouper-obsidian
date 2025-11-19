@@ -5,12 +5,13 @@ import { App, TFile } from "obsidian";
 import { HierarchyConfig } from "../src/types/hierarchy-config";
 
 describe("TreeBuilder - Parent References", () => {
+  let app: App;
   let indexer: VaultIndexer;
   let builder: TreeBuilder;
 
   beforeEach(() => {
     // Mock app
-    const app = {
+    app = {
       vault: {
         getMarkdownFiles: () => [],
       },
@@ -21,7 +22,7 @@ describe("TreeBuilder - Parent References", () => {
     } as unknown as App;
 
     indexer = new VaultIndexer(app);
-    builder = new TreeBuilder(indexer);
+    builder = new TreeBuilder(app, indexer);
   });
 
   it("should set parent references for nested property nodes", async () => {

@@ -391,8 +391,9 @@ export class TagTreeSettingsTab extends PluginSettingTab {
   private getViewDescription(view: HierarchyConfig): string {
     const parts: string[] = [];
 
-    if (view.rootTag) {
-      parts.push(`Root: #${view.rootTag}`);
+    if (view.filters && view.filters.groups && view.filters.groups.length > 0) {
+      const filterCount = view.filters.groups.reduce((sum, group) => sum + group.filters.length, 0);
+      parts.push(`Filters: ${filterCount} in ${view.filters.groups.length} group${view.filters.groups.length > 1 ? 's' : ''}`);
     }
 
     parts.push(

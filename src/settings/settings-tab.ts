@@ -601,11 +601,9 @@ class ViewEditorModal extends Modal {
   private renderEditor(containerEl: HTMLElement): void {
     containerEl.empty();
 
-    // Create scrollable content wrapper
-    const contentWrapper = containerEl.createDiv("tag-tree-modal-content");
-
-    // View name (at the top, outside of sections)
-    new Setting(contentWrapper)
+    // Fixed header with view name
+    const header = containerEl.createDiv("tag-tree-modal-header");
+    new Setting(header)
       .setName("View name")
       .setDesc("Unique name for this view")
       .addText((text) =>
@@ -616,6 +614,9 @@ class ViewEditorModal extends Modal {
             this.workingView.name = value;
           })
       );
+
+    // Create scrollable content wrapper
+    const contentWrapper = containerEl.createDiv("tag-tree-modal-content");
 
     // Filter Options Section (collapsible)
     const filterSection = this.createCollapsibleSection(

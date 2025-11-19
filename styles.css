@@ -146,12 +146,29 @@
   margin-top: 0;
 }
 
-/* View Editor Modal - Fixed Footer Layout */
+/* View Editor Modal - Fixed Header/Footer Layout */
+.tag-tree-modal-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: var(--size-4-3) var(--size-4-4);
+  z-index: 10;
+}
+
+.tag-tree-modal-header .setting-item {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
 .tag-tree-modal-content {
-  max-height: calc(85vh - 120px); /* Account for modal header and footer */
+  max-height: calc(85vh - 180px); /* Account for modal header, view name header, and footer */
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: var(--size-4-3);
+  padding: var(--size-4-3) 0;
 }
 
 .tag-tree-modal-footer {

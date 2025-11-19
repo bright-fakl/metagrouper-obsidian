@@ -4,6 +4,7 @@ import { TreeBuilder } from "./tree/tree-builder";
 import { TreeComponent } from "./components/tree-component";
 import { TreeToolbar } from "./components/tree-toolbar";
 import { ViewState, SortMode, FileSortMode, DEFAULT_VIEW_STATE } from "./types/view-state";
+import { HierarchyConfig } from "./types/hierarchy-config";
 import { SearchQueryBuilder } from "./utils/search-query-builder";
 import { ObsidianSearch } from "./utils/obsidian-search";
 import { TreeNode } from "./types/tree-node";
@@ -136,11 +137,18 @@ export class TagTreeView extends ItemView {
           onViewChange: (viewName: string) => {
             this.handleViewChange(viewName);
           },
+          onRefreshTree: () => {
+            this.handleRefreshTree();
+          },
+          onFilterOverrideToggle: (enabled: boolean) => {
+            this.handleFilterOverrideToggle(enabled);
+          },
         },
         this.treeComponent.getFileSortMode(),
         this.treeComponent.getFileVisibility(),
         this.plugin.settings.savedViews,
-        this.currentViewName
+        this.currentViewName,
+        this.getCurrentViewConfig()
       );
       this.toolbar.render(toolbarContainer);
 
@@ -277,6 +285,7 @@ export class TagTreeView extends ItemView {
     // Update toolbar dropdown to reflect the change
     if (this.toolbar) {
       this.toolbar.setCurrentViewName(viewName);
+      this.toolbar.setCurrentViewConfig(this.getCurrentViewConfig());
     }
 
     // Clear expanded nodes when switching views (or restore view-specific state)
@@ -304,6 +313,83 @@ export class TagTreeView extends ItemView {
 
     // Save the workspace state (which view is active)
     this.app.workspace.requestSaveLayout();
+  }
+
+  /**
+   * Get current view configuration
+   */
+  private getCurrentViewConfig(): HierarchyConfig | null {
+    return this.plugin.settings.savedViews.find(
+      (v) => v.name === this.currentViewName
+    ) || null;
+  }
+
+  /**
+   * Handle refresh tree button click
+   */
+  private handleRefreshTree(): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Rebuild and re-render tree with current filters
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.buildAndRenderTree(container);
+    }
+  }
+
+  /**
+   * Handle filter override toggle
+   */
+  private handleFilterOverrideToggle(enabled: boolean): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Update view state
+    const viewState = this.plugin.settings.viewStates[this.currentViewName];
+    if (!viewState) {
+      this.plugin.settings.viewStates[this.currentViewName] = {
+        ...DEFAULT_VIEW_STATE,
+        filterOverrides: {
+          enabled: enabled,
+          filters: {
+            version: 1,
+            groups: [],
+            combineWithOr: true,
+          },
+        },
+      };
+    } else {
+      if (!viewState.filterOverrides) {
+        viewState.filterOverrides = {
+          enabled: enabled,
+          filters: {
+            version: 1,
+            groups: [],
+            combineWithOr: true,
+          },
+        };
+      } else {
+        viewState.filterOverrides.enabled = enabled;
+      }
+    }
+
+    // Save settings
+    this.plugin.saveSettings();
+
+    // Rebuild tree if needed (when disabling, revert to saved filters)
+    if (!enabled) {
+      const container = this.containerEl.querySelector(
+        ".tag-tree-content"
+      ) as HTMLElement;
+      if (container) {
+        this.buildAndRenderTree(container);
+      }
+    }
   }
 
   /**

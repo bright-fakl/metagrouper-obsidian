@@ -794,3 +794,58 @@
   font-size: var(--font-ui-smaller);
   line-height: 1.4;
 }
+
+/* ============================================================================
+ * Toolbar filter explanation
+ * ========================================================================== */
+
+.tag-tree-filter-explanation {
+  margin-top: var(--size-4-2);
+  margin-bottom: var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 0;
+  background-color: var(--background-secondary);
+}
+
+.tag-tree-filter-explanation summary {
+  padding: var(--size-4-2) var(--size-4-3);
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.tag-tree-filter-explanation summary:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.tag-tree-filter-explanation-content {
+  padding: var(--size-4-2) var(--size-4-3);
+  border-top: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-smaller);
+}
+
+.tag-tree-filter-explanation-mode {
+  margin-bottom: var(--size-4-2);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.tag-tree-filter-explanation-group {
+  margin-bottom: var(--size-4-2);
+}
+
+.tag-tree-filter-explanation-group:last-child {
+  margin-bottom: 0;
+}
+
+.tag-tree-filter-explanation-group ul {
+  margin: var(--size-2-2) 0 0 var(--size-4-4);
+  padding: 0;
+  list-style-type: disc;
+}
+
+.tag-tree-filter-explanation-group li {
+  margin: var(--size-2-1) 0;
+  color: var(--text-normal);
+}

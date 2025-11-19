@@ -1,6 +1,7 @@
 import { setIcon, DropdownComponent, ButtonComponent, ToggleComponent } from "obsidian";
 import { SortMode, FileSortMode } from "../types/view-state";
 import { HierarchyConfig } from "../types/hierarchy-config";
+import { FilterConfig } from "../types/filters";
 
 /**
  * Toolbar configuration for callbacks
@@ -12,6 +13,8 @@ export interface TreeToolbarCallbacks {
   onExpandToDepth: (depth: number) => void;
   onToggleFiles: () => void;
   onViewChange?: (viewName: string) => void;
+  onRefreshTree?: () => void;
+  onFilterOverrideToggle?: (enabled: boolean) => void;
 }
 
 /**
@@ -26,7 +29,10 @@ export class TreeToolbar {
   private showFiles: boolean = true;
   private savedViews: HierarchyConfig[];
   private currentViewName: string;
+  private currentViewConfig: HierarchyConfig | null = null;
   private isCollapsed: boolean = false;
+  private filterOverridesEnabled: boolean = false;
+  private filterExplanationCollapsed: boolean = true;
 
   // File sort mode labels for dropdown
   private readonly fileSortModeLabels: Record<FileSortMode, string> = {
@@ -55,13 +61,15 @@ export class TreeToolbar {
     initialFileSortMode: FileSortMode = "alpha-asc",
     initialShowFiles: boolean = true,
     savedViews: HierarchyConfig[] = [],
-    currentViewName: string = "All Tags"
+    currentViewName: string = "All Tags",
+    currentViewConfig: HierarchyConfig | null = null
   ) {
     this.callbacks = callbacks;
     this.currentFileSortMode = initialFileSortMode;
     this.showFiles = initialShowFiles;
     this.savedViews = savedViews;
     this.currentViewName = currentViewName;
+    this.currentViewConfig = currentViewConfig;
   }
 
   /**
@@ -111,6 +119,23 @@ export class TreeToolbar {
     const controlsRow = toolbar.createDiv("tag-tree-toolbar-row");
     this.renderFileVisibilityToggle(controlsRow);
     this.renderSortControl(controlsRow);
+
+    // Row 3: Refresh button (if filter callback available)
+    if (this.callbacks.onRefreshTree) {
+      const refreshRow = toolbar.createDiv("tag-tree-toolbar-row");
+      this.renderRefreshButton(refreshRow);
+    }
+
+    // Filter explanation section (collapsible, if view has filters)
+    if (this.currentViewConfig?.filters && this.currentViewConfig.filters.groups?.length > 0) {
+      this.renderFilterExplanation(toolbar);
+    }
+
+    // Toolbar filter controls (if configured for this view)
+    if (this.currentViewConfig?.toolbarFilterTypes && this.currentViewConfig.toolbarFilterTypes.length > 0) {
+      const filterRow = toolbar.createDiv("tag-tree-toolbar-row");
+      this.renderToolbarFilterControls(filterRow);
+    }
   }
 
   /**
@@ -273,6 +298,134 @@ export class TreeToolbar {
   }
 
   /**
+   * Render refresh button
+   */
+  private renderRefreshButton(row: HTMLElement): void {
+    const group = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
+    new ButtonComponent(group)
+      .setButtonText("Refresh")
+      .setIcon("refresh-cw")
+      .setTooltip("Rebuild tree with current filters")
+      .onClick(() => {
+        if (this.callbacks.onRefreshTree) {
+          this.callbacks.onRefreshTree();
+        }
+      });
+  }
+
+  /**
+   * Render filter explanation (collapsible)
+   */
+  private renderFilterExplanation(toolbar: HTMLElement): void {
+    const details = toolbar.createEl("details", {
+      cls: "tag-tree-filter-explanation"
+    });
+
+    if (!this.filterExplanationCollapsed) {
+      details.setAttribute("open", "");
+    }
+
+    details.addEventListener("toggle", () => {
+      this.filterExplanationCollapsed = !details.hasAttribute("open");
+    });
+
+    const summary = details.createEl("summary");
+    summary.createSpan({ text: "Active Filters" });
+
+    const content = details.createDiv({ cls: "tag-tree-filter-explanation-content" });
+
+    if (!this.currentViewConfig?.filters) {
+      content.createSpan({ text: "No filters configured" });
+      return;
+    }
+
+    const filters = this.currentViewConfig.filters;
+
+    // Show combination mode
+    const combineModeText = filters.combineWithOr ? "OR" : "AND";
+    content.createEl("div", {
+      text: `Filter groups combined with ${combineModeText}`,
+      cls: "tag-tree-filter-explanation-mode"
+    });
+
+    // Show each group
+    filters.groups.forEach((group, index) => {
+      if (!group.enabled) return;
+
+      const groupEl = content.createDiv({ cls: "tag-tree-filter-explanation-group" });
+      groupEl.createEl("strong", { text: `Group ${index + 1}:` });
+
+      const filtersListEl = groupEl.createEl("ul");
+
+      group.filters.forEach((filter) => {
+        const filterText = this.getFilterDescription(filter as any);
+        filtersListEl.createEl("li", { text: filterText });
+      });
+    });
+  }
+
+  /**
+   * Get human-readable description of a filter
+   */
+  private getFilterDescription(filter: any): string {
+    const negate = filter.negate ? "NOT " : "";
+
+    switch (filter.type) {
+      case "tag":
+        return `${negate}Tag ${filter.matchMode} "${filter.tag}"`;
+      case "property-exists":
+        return `${negate}Has property "${filter.property}"`;
+      case "property-value":
+        return `${negate}Property "${filter.property}" ${filter.operator} ${filter.value || ""}`;
+      case "file-path":
+        return `${negate}Path ${filter.matchMode} "${filter.pattern}"`;
+      case "file-size":
+        return `${negate}Size ${filter.operator} ${filter.value}${filter.unit || "B"}`;
+      case "file-ctime":
+        return `${negate}Created ${filter.operator} ${filter.value}`;
+      case "file-mtime":
+        return `${negate}Modified ${filter.operator} ${filter.value}`;
+      case "link-count":
+        return `${negate}${filter.linkType} ${filter.operator} ${filter.value}`;
+      case "bookmark":
+        return `${negate}Bookmarked`;
+      default:
+        return `${negate}Unknown filter`;
+    }
+  }
+
+  /**
+   * Render toolbar filter controls (simplified for now)
+   */
+  private renderToolbarFilterControls(row: HTMLElement): void {
+    const group = row.createDiv({ cls: "tag-tree-toolbar-group" });
+
+    // Enable/disable toolbar filters toggle
+    const label = group.createSpan({ text: "Toolbar filters: " });
+    label.style.marginRight = "var(--size-4-2)";
+
+    new ToggleComponent(group)
+      .setValue(this.filterOverridesEnabled)
+      .setTooltip("Enable/disable toolbar filter overrides")
+      .onChange((value) => {
+        this.filterOverridesEnabled = value;
+        if (this.callbacks.onFilterOverrideToggle) {
+          this.callbacks.onFilterOverrideToggle(value);
+        }
+      });
+
+    // Note about toolbar filters
+    if (this.currentViewConfig?.toolbarFilterTypes && this.currentViewConfig.toolbarFilterTypes.length > 0) {
+      const note = group.createSpan({
+        text: " (Quick filters coming in next update)",
+        cls: "setting-item-description"
+      });
+      note.style.marginLeft = "var(--size-4-2)";
+    }
+  }
+
+  /**
    * Update the current file sort mode
    */
   setFileSortMode(mode: FileSortMode): void {
@@ -334,6 +487,34 @@ export class TreeToolbar {
     this.currentViewName = viewName;
 
     // Re-render toolbar to update view dropdown and header
+    if (this.container) {
+      this.render(this.container);
+    }
+  }
+
+  /**
+   * Update the current view config (for filter information)
+   */
+  setCurrentViewConfig(viewConfig: HierarchyConfig | null): void {
+    this.currentViewConfig = viewConfig;
+
+    // Re-render toolbar to update filter controls
+    if (this.container) {
+      this.render(this.container);
+    }
+  }
+
+  /**
+   * Set filter overrides enabled state
+   */
+  setFilterOverridesEnabled(enabled: boolean): void {
+    if (this.filterOverridesEnabled === enabled) {
+      return;
+    }
+
+    this.filterOverridesEnabled = enabled;
+
+    // Re-render toolbar to update toggle
     if (this.container) {
       this.render(this.container);
     }

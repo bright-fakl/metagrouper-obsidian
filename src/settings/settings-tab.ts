@@ -523,6 +523,7 @@ class ViewEditorModal extends Modal {
   private collapseState: {
     basic: boolean;
     filters: boolean;
+    toolbar: boolean;
     sorting: boolean;
     colors: boolean;
     levels: boolean;
@@ -531,6 +532,7 @@ class ViewEditorModal extends Modal {
   } = {
     basic: true,
     filters: true,
+    toolbar: false,
     sorting: true,
     colors: false,
     levels: true,
@@ -626,6 +628,16 @@ class ViewEditorModal extends Modal {
 
     // Render filter UI
     this.renderFilters(filterSection);
+
+    // Toolbar Configuration Section (collapsible)
+    const toolbarSection = this.createCollapsibleSection(
+      containerEl,
+      "Toolbar Configuration",
+      "toolbar",
+      false
+    );
+
+    this.renderToolbarConfig(toolbarSection);
 
     // Sorting and Display Options Section (collapsible)
     const sortingSection = this.createCollapsibleSection(
@@ -1211,6 +1223,73 @@ class ViewEditorModal extends Modal {
   }
 
   /**
+   * Render toolbar configuration UI
+   */
+  private renderToolbarConfig(container: HTMLElement): void {
+    // Description
+    new Setting(container)
+      .setName("")
+      .setDesc(
+        "Select which filter types should be available in the toolbar for quick filtering. " +
+        "Toolbar filters temporarily override saved filters and don't persist."
+      );
+
+    // Initialize toolbarFilterTypes if not present
+    if (!this.workingView.toolbarFilterTypes) {
+      this.workingView.toolbarFilterTypes = [];
+    }
+
+    const toolbarContainer = container.createDiv({ cls: "tag-tree-toolbar-filter-types" });
+
+    // All available filter types
+    const allFilterTypes: FilterType[] = [
+      "tag",
+      "property-exists",
+      "property-value",
+      "file-path",
+      "file-size",
+      "file-ctime",
+      "file-mtime",
+      "link-count",
+      "bookmark",
+    ];
+
+    // Create checkbox for each filter type
+    allFilterTypes.forEach((filterType) => {
+      const metadata = FILTER_TYPE_METADATA[filterType];
+      const isEnabled = this.workingView.toolbarFilterTypes!.includes(filterType);
+
+      new Setting(toolbarContainer)
+        .setName(metadata.name)
+        .setDesc(metadata.description)
+        .addToggle((toggle) => {
+          toggle.setValue(isEnabled).onChange((value) => {
+            if (value) {
+              // Add to toolbar filter types
+              if (!this.workingView.toolbarFilterTypes!.includes(filterType)) {
+                this.workingView.toolbarFilterTypes!.push(filterType);
+              }
+            } else {
+              // Remove from toolbar filter types
+              const index = this.workingView.toolbarFilterTypes!.indexOf(filterType);
+              if (index > -1) {
+                this.workingView.toolbarFilterTypes!.splice(index, 1);
+              }
+            }
+          });
+        });
+    });
+
+    // Note about empty selection
+    if (this.workingView.toolbarFilterTypes.length === 0) {
+      toolbarContainer.createEl("p", {
+        text: "No filter types selected. Toolbar will not show filter controls.",
+        cls: "setting-item-description",
+      }).style.marginTop = "var(--size-4-2)";
+    }
+  }
+
+  /**
    * Render all filter groups
    */
   private renderFilterGroups(container: HTMLElement): void {
@@ -1411,6 +1490,11 @@ class ViewEditorModal extends Modal {
           filter.property = value;
           // Don't re-render on every keystroke - just update the value
         });
+
+      // Re-render when input loses focus (user finished typing)
+      text.inputEl.addEventListener("blur", () => {
+        this.renderEditor(this.contentEl);
+      });
     });
 
     // Detect property type and show appropriate operators
@@ -1741,17 +1825,27 @@ class FilterTypeSelectModal extends Modal {
       button.style.borderRadius = "var(--radius-s)";
       button.style.backgroundColor = "var(--background-secondary)";
       button.style.cursor = "pointer";
+      button.style.display = "flex";
+      button.style.flexDirection = "column";
+      button.style.gap = "var(--size-4-2)";
+      button.style.minHeight = "80px";
 
-      const iconEl = button.createDiv();
+      // Header row with icon and title side by side
+      const headerRow = button.createDiv();
+      headerRow.style.display = "flex";
+      headerRow.style.alignItems = "center";
+      headerRow.style.gap = "var(--size-4-2)";
+
+      const iconEl = headerRow.createDiv();
       setIcon(iconEl, metadata.icon);
-      iconEl.style.marginBottom = "var(--size-4-2)";
       iconEl.style.color = "var(--text-muted)";
+      iconEl.style.flexShrink = "0";
 
-      const titleEl = button.createEl("div", { text: metadata.name });
+      const titleEl = headerRow.createEl("div", { text: metadata.name });
       titleEl.style.fontWeight = "600";
-      titleEl.style.marginBottom = "var(--size-2-2)";
       titleEl.style.color = "var(--text-normal)";
 
+      // Description on separate line
       button.createEl("div", {
         text: metadata.description,
         cls: "setting-item-description",

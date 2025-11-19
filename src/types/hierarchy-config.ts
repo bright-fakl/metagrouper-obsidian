@@ -100,6 +100,9 @@ export interface HierarchyConfig {
 
   /** Optional custom color for file nodes (CSS color value) */
   fileColor?: string;
+
+  /** Filter types to expose in toolbar (for quick overrides) */
+  toolbarFilterTypes?: import("./filters").FilterType[];
 }
 
 /**

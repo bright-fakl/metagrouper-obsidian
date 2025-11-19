@@ -1533,26 +1533,43 @@ class ViewEditorModal extends Modal {
       operators = ARRAY_OPERATORS;
     }
 
-    // Operator dropdown
-    setting.addDropdown(dropdown => {
-      operators.forEach(op => {
-        dropdown.addOption(op.operator, op.label);
-      });
+    // Only show operator dropdown if there's more than one operator
+    // or if the single operator requires a value
+    const showOperatorDropdown = operators.length > 1 ||
+      (operators.length === 1 && operators[0].needsValue);
 
-      // Validate current operator against new operators list
-      const isValidOperator = operators.some(op => op.operator === filter.operator);
-      if (!isValidOperator && operators.length > 0) {
+    if (showOperatorDropdown) {
+      // Operator dropdown
+      setting.addDropdown(dropdown => {
+        operators.forEach(op => {
+          dropdown.addOption(op.operator, op.label);
+        });
+
+        // Validate current operator against new operators list
+        const isValidOperator = operators.some(op => op.operator === filter.operator);
+        if (!isValidOperator && operators.length > 0) {
+          filter.operator = operators[0].operator as any;
+        }
+
+        dropdown
+          .setValue(filter.operator || operators[0]?.operator || "equals")
+          .onChange(value => {
+            filter.operator = value as any;
+            // Re-render to show/hide value inputs based on operator
+            this.renderEditor(this.contentEl);
+          });
+      });
+    } else {
+      // Auto-set the only operator if not already set
+      if (operators.length === 1 && (!filter.operator || filter.operator !== operators[0].operator)) {
         filter.operator = operators[0].operator as any;
       }
 
-      dropdown
-        .setValue(filter.operator || operators[0]?.operator || "equals")
-        .onChange(value => {
-          filter.operator = value as any;
-          // Re-render to show/hide value inputs based on operator
-          this.renderEditor(this.contentEl);
-        });
-    });
+      // Add a description for single, value-less operators (like boolean "is true")
+      if (operators.length === 1 && !operators[0].needsValue) {
+        setting.setDesc(`Matches when property is ${operators[0].label} (use NOT toggle to invert)`);
+      }
+    }
 
     // Value input (if operator needs a value)
     const currentOp = operators.find(op => op.operator === filter.operator);

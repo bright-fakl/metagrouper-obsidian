@@ -15,6 +15,31 @@ import {
 import { SortMode, FileSortMode } from "../types/view-state";
 import { DEFAULT_LEVEL_COLORS } from "./plugin-settings";
 import { KOFI_SVG } from "../assets/kofi-logo";
+import {
+  FilterConfig,
+  LabeledFilter,
+  Filter,
+  FilterType,
+  FILTER_TYPE_METADATA,
+  TagFilter,
+  PropertyExistsFilter,
+  PropertyValueFilter,
+  FilePathFilter,
+  FileSizeFilter,
+  FileDateFilter,
+  LinkCountFilter,
+  BookmarkFilter,
+  STRING_OPERATORS,
+  NUMBER_OPERATORS,
+  DATE_OPERATORS,
+  FILE_DATE_OPERATORS,
+  BOOLEAN_OPERATORS,
+  ARRAY_OPERATORS,
+  SIZE_OPERATORS,
+  LINK_COUNT_OPERATORS,
+} from "../types/filters";
+import { generateFilterId } from "../filters/filter-utils";
+import { ExpressionParser, validateFilterLabels } from "../filters/expression-parser";
 
 /**
  * Modal to display the changelog
@@ -368,8 +393,11 @@ export class TagTreeSettingsTab extends PluginSettingTab {
   private getViewDescription(view: HierarchyConfig): string {
     const parts: string[] = [];
 
-    if (view.rootTag) {
-      parts.push(`Root: #${view.rootTag}`);
+    if (view.filters && view.filters.filters && view.filters.filters.length > 0) {
+      parts.push(`Filters: ${view.filters.filters.length}`);
+      if (view.filters.expression) {
+        parts.push(`Expression: ${view.filters.expression}`);
+      }
     }
 
     parts.push(
@@ -498,12 +526,16 @@ class ViewEditorModal extends Modal {
   // Track collapse state to preserve across re-renders
   private collapseState: {
     basic: boolean;
+    filters: boolean;
+    toolbar: boolean;
     sorting: boolean;
     colors: boolean;
     levels: boolean;
     levelItems: Map<number, boolean>;
   } = {
     basic: true,
+    filters: true,
+    toolbar: false,
     sorting: true,
     colors: false,
     levels: true,
@@ -528,12 +560,25 @@ class ViewEditorModal extends Modal {
       if (!this.workingView.levelColorMode) {
         this.workingView.levelColorMode = "none";
       }
+      // Initialize filters if not present
+      if (!this.workingView.filters) {
+        this.workingView.filters = {
+          version: 2,
+          filters: [],
+          expression: "",
+        };
+      }
     } else {
       // Create new view with defaults
       this.workingView = createHierarchyConfig({
         name: "New View",
         levels: [createTagLevel({ key: "" })],
         showPartialMatches: false,
+        filters: {
+          version: 2,
+          filters: [],
+          expression: "",
+        },
       });
     }
   }
@@ -557,8 +602,9 @@ class ViewEditorModal extends Modal {
   private renderEditor(containerEl: HTMLElement): void {
     containerEl.empty();
 
-    // View name (at the top, outside of sections)
-    new Setting(containerEl)
+    // Fixed header with view name
+    const header = containerEl.createDiv("tag-tree-modal-header");
+    new Setting(header)
       .setName("View name")
       .setDesc("Unique name for this view")
       .addText((text) =>
@@ -570,32 +616,28 @@ class ViewEditorModal extends Modal {
           })
       );
 
+    // Create scrollable content wrapper
+    const contentWrapper = containerEl.createDiv("tag-tree-modal-content");
+
     // Filter Options Section (collapsible)
     const filterSection = this.createCollapsibleSection(
-      containerEl,
-      "Filter Options",
-      "basic",
+      contentWrapper,
+      "Filters",
+      "filters",
       true
     );
 
-    // Root tag filter (optional)
+    // Description
     new Setting(filterSection)
-      .setName("Root tag filter")
-      .setDesc(
-        "Optional: Only include files with this tag (e.g., 'project' for #project)"
-      )
-      .addText((text) =>
-        text
-          .setPlaceholder("project")
-          .setValue(this.workingView.rootTag || "")
-          .onChange((value) => {
-            this.workingView.rootTag = value.trim() || undefined;
-          })
-      );
+      .setName("")
+      .setDesc("Filter which files are shown in this view. Define individual filters and combine them with boolean expressions.");
+
+    // Render filter UI
+    this.renderFilters(filterSection);
 
     // Sorting and Display Options Section (collapsible)
     const sortingSection = this.createCollapsibleSection(
-      containerEl,
+      contentWrapper,
       "Sorting & Display Options",
       "sorting",
       true
@@ -669,7 +711,7 @@ class ViewEditorModal extends Modal {
 
     // Level colors section (collapsible)
     const colorsSection = this.createCollapsibleSection(
-      containerEl,
+      contentWrapper,
       "Hierarchy Level Colors",
       "colors",
       false
@@ -721,7 +763,7 @@ class ViewEditorModal extends Modal {
 
     // Hierarchy levels section (collapsible)
     const levelsSection = this.createCollapsibleSection(
-      containerEl,
+      contentWrapper,
       "Hierarchy Levels",
       "levels",
       true
@@ -734,14 +776,10 @@ class ViewEditorModal extends Modal {
     const levelsContainer = levelsSection.createDiv();
     this.renderLevels(levelsContainer);
 
-    // Save/Cancel buttons
-    const buttonsContainer = containerEl.createDiv("modal-button-container");
-    buttonsContainer.style.display = "flex";
-    buttonsContainer.style.justifyContent = "flex-end";
-    buttonsContainer.style.gap = "8px";
-    buttonsContainer.style.marginTop = "16px";
+    // Fixed footer with Save/Cancel buttons
+    const footer = containerEl.createDiv("tag-tree-modal-footer");
 
-    new Setting(buttonsContainer)
+    new Setting(footer)
       .addButton((button) =>
         button
           .setButtonText("Cancel")
@@ -1136,6 +1174,739 @@ class ViewEditorModal extends Modal {
   }
 
   /**
+   * Render the filters section
+   */
+  private renderFilters(container: HTMLElement): void {
+    // Ensure filters is initialized
+    if (!this.workingView.filters) {
+      this.workingView.filters = {
+        version: 2,
+        filters: [],
+        expression: "",
+      };
+    }
+
+    const filtersContainer = container.createDiv({ cls: "tag-tree-filters-container" });
+
+    // Individual filters list
+    const filtersListContainer = filtersContainer.createDiv({ cls: "tag-tree-labeled-filters" });
+    this.renderLabeledFilters(filtersListContainer);
+
+    // Add filter button
+    new Setting(filtersContainer)
+      .addButton(button => {
+        button
+          .setButtonText("+ Add Filter")
+          .onClick(() => {
+            this.showFilterTypeSelectModal();
+          });
+      });
+
+    // Boolean expression input
+    const expressionSetting = new Setting(filtersContainer)
+      .setName("Boolean Expression")
+      .setDesc("Combine filters using: & (AND), | (OR), ! (NOT), (). Leave empty to AND all filters.");
+
+    const filters = this.workingView.filters; // Store reference for closure
+    expressionSetting.addTextArea(text => {
+      text
+        .setPlaceholder("e.g., (A & B) | (C & !D)")
+        .setValue(filters.expression || "")
+        .onChange(value => {
+          filters.expression = value;
+          // Validate expression
+          this.validateExpression();
+        });
+      text.inputEl.rows = 3;
+      text.inputEl.style.width = "100%";
+      text.inputEl.style.fontFamily = "monospace";
+    });
+
+    // Expression validation feedback
+    const validationContainer = filtersContainer.createDiv({ cls: "tag-tree-expression-validation" });
+    this.renderExpressionValidation(validationContainer);
+  }
+
+  /**
+   * Render all labeled filters
+   */
+  private renderLabeledFilters(container: HTMLElement): void {
+    container.empty();
+
+    if (!this.workingView.filters || !this.workingView.filters.filters || this.workingView.filters.filters.length === 0) {
+      container.createEl("p", {
+        text: "No filters defined. Add filters below and combine them with a boolean expression.",
+        cls: "setting-item-description",
+      });
+      return;
+    }
+
+    // Show available labels
+    const labels = this.workingView.filters.filters.map(lf => lf.label).join(', ');
+    container.createEl("p", {
+      text: `Available labels: ${labels}`,
+      cls: "setting-item-description",
+    }).style.marginBottom = "var(--size-4-2)";
+
+    this.workingView.filters.filters.forEach((labeledFilter, index) => {
+      const filterContainer = container.createDiv({ cls: "tag-tree-filter-item" });
+      this.renderLabeledFilter(filterContainer, labeledFilter, index);
+    });
+  }
+
+  /**
+   * Render a single labeled filter
+   */
+  private renderLabeledFilter(container: HTMLElement, labeledFilter: LabeledFilter, index: number): void {
+    const filter = labeledFilter.filter;
+
+    // Clean up negate field from filters that don't use it (legacy cleanup)
+    if (filter.type !== "property-exists" && filter.negate !== undefined) {
+      delete filter.negate;
+    }
+
+    const setting = new Setting(container);
+
+    // Label badge
+    const labelBadge = setting.nameEl.createSpan({ cls: "tag-tree-filter-label-badge" });
+    labelBadge.setText(labeledFilter.label);
+    labelBadge.style.display = "inline-block";
+    labelBadge.style.padding = "2px 8px";
+    labelBadge.style.marginRight = "8px";
+    labelBadge.style.backgroundColor = "var(--interactive-accent)";
+    labelBadge.style.color = "var(--text-on-accent)";
+    labelBadge.style.borderRadius = "var(--radius-s)";
+    labelBadge.style.fontWeight = "600";
+
+    // Filter type label
+    const metadata = FILTER_TYPE_METADATA[filter.type];
+    setting.setName(`${labeledFilter.label} - ${metadata.name}`);
+
+    // Type-specific UI
+    switch (filter.type) {
+      case "tag":
+        this.renderTagFilterUI(setting, filter as TagFilter);
+        break;
+      case "property-exists":
+        this.renderPropertyExistsFilterUI(setting, filter as PropertyExistsFilter);
+        break;
+      case "property-value":
+        this.renderPropertyValueFilterUI(setting, filter as PropertyValueFilter);
+        break;
+      case "file-path":
+        this.renderFilePathFilterUI(setting, filter as FilePathFilter);
+        break;
+      case "file-size":
+        this.renderFileSizeFilterUI(setting, filter as FileSizeFilter);
+        break;
+      case "file-ctime":
+      case "file-mtime":
+        this.renderFileDateFilterUI(setting, filter as FileDateFilter);
+        break;
+      case "link-count":
+        this.renderLinkCountFilterUI(setting, filter as LinkCountFilter);
+        break;
+      case "bookmark":
+        this.renderBookmarkFilterUI(setting, filter as BookmarkFilter);
+        break;
+    }
+
+    // Show in toolbar toggle
+    setting.addExtraButton(button => {
+      const showInToolbar = labeledFilter.showInToolbar === true; // Default false (hidden)
+      button
+        .setIcon(showInToolbar ? "eye" : "eye-off")
+        .setTooltip(showInToolbar ? "Hide from toolbar explanation" : "Show in toolbar explanation")
+        .onClick(() => {
+          labeledFilter.showInToolbar = !showInToolbar;
+          this.renderEditor(this.contentEl);
+        });
+    });
+
+    // Delete button
+    setting.addExtraButton(button => {
+      button
+        .setIcon("trash")
+        .setTooltip("Delete filter")
+        .onClick(() => {
+          this.workingView.filters!.filters.splice(index, 1);
+          this.renderEditor(this.contentEl);
+        });
+    });
+  }
+
+  // Type-specific filter UI renderers
+
+  private renderTagFilterUI(setting: Setting, filter: TagFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Tag name (e.g., project)")
+        .setValue(filter.tag || "")
+        .onChange(value => {
+          filter.tag = value;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("prefix", "Prefix match")
+        .addOption("exact", "Exact match")
+        .addOption("contains", "Contains")
+        .setValue(filter.matchMode || "prefix")
+        .onChange(value => {
+          filter.matchMode = value as any;
+        });
+    });
+  }
+
+  private renderPropertyExistsFilterUI(setting: Setting, filter: PropertyExistsFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Property name")
+        .setValue(filter.property || "")
+        .onChange(value => {
+          filter.property = value;
+        });
+    });
+
+    // Dropdown for exists/does not exist
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("exists", "exists")
+        .addOption("not-exists", "does not exist")
+        .setValue(filter.negate ? "not-exists" : "exists")
+        .onChange(value => {
+          filter.negate = value === "not-exists";
+        });
+    });
+  }
+
+  private renderPropertyValueFilterUI(setting: Setting, filter: PropertyValueFilter): void {
+    // Property name input
+    setting.addText(text => {
+      text
+        .setPlaceholder("Property name")
+        .setValue(filter.property || "")
+        .onChange(value => {
+          filter.property = value;
+          // Don't re-render on every keystroke - just update the value
+        });
+
+      // Re-render when input loses focus (user finished typing)
+      text.inputEl.addEventListener("blur", () => {
+        this.renderEditor(this.contentEl);
+      });
+    });
+
+    // Detect property type and show appropriate operators
+    const propertyType = this.detectPropertyType(filter.property);
+
+    // Check for type mismatch between saved filter and actual property
+    if (propertyType && filter.valueType && propertyType !== filter.valueType) {
+      // Type mismatch detected - show warning
+      const warningEl = setting.descEl.createDiv({ cls: "tag-tree-filter-warning" });
+      warningEl.style.color = "var(--text-warning)";
+      warningEl.style.marginTop = "var(--size-4-1)";
+      warningEl.createEl("strong", { text: "⚠️ Type mismatch: " });
+      warningEl.appendText(`Property "${filter.property}" is type "${propertyType}" but filter uses type "${filter.valueType}". `);
+
+      const updateBtn = warningEl.createEl("a", { text: "Update to actual type", href: "#" });
+      updateBtn.style.marginLeft = "var(--size-2-1)";
+      updateBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        filter.valueType = propertyType as any;
+        this.renderEditor(this.contentEl);
+      });
+
+      const keepBtn = warningEl.createEl("a", { text: "Keep current type", href: "#" });
+      keepBtn.style.marginLeft = "var(--size-2-1)";
+      keepBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        // Just dismiss the warning by re-rendering without the type detection
+        // Set a flag to prevent showing warning again
+        (filter as any)._typeMismatchAcknowledged = true;
+        this.renderEditor(this.contentEl);
+      });
+    }
+
+    // If we detected a type and no mismatch warning was acknowledged, use it
+    if (propertyType && !(filter as any)._typeMismatchAcknowledged) {
+      filter.valueType = propertyType as any;
+    }
+
+    // Add type selector for unregistered properties
+    if (!propertyType && filter.property) {
+      // Show message that property doesn't exist
+      const infoEl = setting.descEl.createDiv({ cls: "tag-tree-filter-info" });
+      infoEl.style.color = "var(--text-muted)";
+      infoEl.style.marginTop = "var(--size-4-1)";
+      infoEl.style.fontSize = "0.9em";
+      infoEl.createEl("em", { text: "ℹ️ Property not found in vault. Please select a type:" });
+
+      setting.addDropdown(dropdown => {
+        dropdown
+          .addOption("", "Select type...")
+          .addOption("string", "String")
+          .addOption("number", "Number")
+          .addOption("date", "Date")
+          .addOption("checkbox", "Boolean")
+          .addOption("tags", "List")
+          .setValue(filter.valueType || "")
+          .onChange(value => {
+            filter.valueType = value as any;
+            // Re-render to update operators when type changes
+            this.renderEditor(this.contentEl);
+          });
+        dropdown.selectEl.style.width = "auto";
+      });
+    }
+
+    // Determine which operators to show
+    const effectiveType = propertyType || filter.valueType;
+
+    // If no type is selected yet, don't show operators or value inputs
+    if (!effectiveType || effectiveType === "") {
+      setting.setDesc("Please select a property type to continue");
+      return;
+    }
+
+    let operators = STRING_OPERATORS;
+
+    if (effectiveType === "number") {
+      operators = NUMBER_OPERATORS;
+    } else if (effectiveType === "date" || effectiveType === "datetime") {
+      operators = DATE_OPERATORS;
+    } else if (effectiveType === "boolean" || effectiveType === "checkbox") {
+      operators = BOOLEAN_OPERATORS;
+    } else if (effectiveType === "tags" || effectiveType === "aliases" || effectiveType === "array") {
+      operators = ARRAY_OPERATORS;
+    }
+
+    // Only show operator dropdown if there's more than one operator
+    // or if the single operator requires a value
+    const showOperatorDropdown = operators.length > 1 ||
+      (operators.length === 1 && operators[0].needsValue);
+
+    if (showOperatorDropdown) {
+      // Operator dropdown
+      setting.addDropdown(dropdown => {
+        operators.forEach(op => {
+          dropdown.addOption(op.operator, op.label);
+        });
+
+        // Validate current operator against new operators list
+        const isValidOperator = operators.some(op => op.operator === filter.operator);
+        if (!isValidOperator && operators.length > 0) {
+          filter.operator = operators[0].operator as any;
+        }
+
+        dropdown
+          .setValue(filter.operator || operators[0]?.operator || "equals")
+          .onChange(value => {
+            filter.operator = value as any;
+            // Re-render to show/hide value inputs based on operator
+            this.renderEditor(this.contentEl);
+          });
+      });
+    } else {
+      // Auto-set the only operator if not already set
+      if (operators.length === 1 && (!filter.operator || filter.operator !== operators[0].operator)) {
+        filter.operator = operators[0].operator as any;
+      }
+
+      // Add a description for single, value-less operators
+      if (operators.length === 1 && !operators[0].needsValue) {
+        setting.setDesc(`Matches when property is ${operators[0].label}`);
+      }
+    }
+
+    // Value input (if operator needs a value)
+    const currentOp = operators.find(op => op.operator === filter.operator);
+    if (!currentOp || currentOp.needsValue) {
+      setting.addText(text => {
+        text
+          .setPlaceholder("Value")
+          .setValue(String(filter.value || ""))
+          .onChange(value => {
+            filter.value = value;
+          });
+      });
+
+      // For range operators, add max value input
+      if (currentOp?.needsValueMax) {
+        setting.addText(text => {
+          text
+            .setPlaceholder("Max value")
+            .setValue(String(filter.valueMax || ""))
+            .onChange(value => {
+              filter.valueMax = value;
+            });
+        });
+      }
+    }
+  }
+
+  /**
+   * Detect property type from Obsidian's metadata type manager
+   */
+  private detectPropertyType(propertyName: string): string | null {
+    if (!propertyName || propertyName.trim() === "") {
+      return null;
+    }
+
+    const metadataTypeManager = (this.app as any).metadataTypeManager;
+    if (!metadataTypeManager) {
+      console.log("TagTree: metadataTypeManager not available");
+      return null;
+    }
+
+    // Try different API methods that might exist
+    let propertyInfo = null;
+
+    if (typeof metadataTypeManager.getPropertyInfo === "function") {
+      propertyInfo = metadataTypeManager.getPropertyInfo(propertyName);
+      console.log(`TagTree: getPropertyInfo("${propertyName}") =>`, propertyInfo);
+    } else if (typeof metadataTypeManager.getType === "function") {
+      propertyInfo = metadataTypeManager.getType(propertyName);
+      console.log(`TagTree: getType("${propertyName}") =>`, propertyInfo);
+    } else if (metadataTypeManager.properties) {
+      propertyInfo = metadataTypeManager.properties[propertyName];
+      console.log(`TagTree: properties["${propertyName}"] =>`, propertyInfo);
+    } else {
+      console.log("TagTree: metadataTypeManager methods:", Object.keys(metadataTypeManager));
+    }
+
+    if (propertyInfo) {
+      // Try different ways the type might be stored
+      const type = propertyInfo.type || propertyInfo;
+      console.log(`TagTree: Detected type for "${propertyName}":`, type);
+
+      // If type is a string, return it directly
+      if (typeof type === "string") {
+        return type;
+      }
+
+      // If type is an object with a widget property, map it to our type
+      if (typeof type === "object" && type.widget) {
+        const widgetMap: Record<string, string> = {
+          "checkbox": "boolean",
+          "number": "number",
+          "date": "date",
+          "datetime": "date",
+          "text": "string",
+          "multitext": "string",
+          "tags": "array",
+        };
+        const mappedType = widgetMap[type.widget] || "string";
+        console.log(`TagTree: Mapped widget "${type.widget}" to type "${mappedType}"`);
+        return mappedType;
+      }
+    }
+
+    return null;
+  }
+
+  private renderFilePathFilterUI(setting: Setting, filter: FilePathFilter): void {
+    setting.addText(text => {
+      text
+        .setPlaceholder("Path pattern (e.g., Projects/*)")
+        .setValue(filter.pattern || "")
+        .onChange(value => {
+          filter.pattern = value;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("wildcard", "Wildcard")
+        .addOption("regex", "Regex")
+        .setValue(filter.matchMode || "wildcard")
+        .onChange(value => {
+          filter.matchMode = value as any;
+        });
+    });
+  }
+
+  private renderFileSizeFilterUI(setting: Setting, filter: FileSizeFilter): void {
+    setting.addDropdown(dropdown => {
+      SIZE_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "gt")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Size (e.g., 1.5 MB)")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = parseFloat(value) || 0;
+        });
+    });
+  }
+
+  private renderFileDateFilterUI(setting: Setting, filter: FileDateFilter): void {
+    setting.addDropdown(dropdown => {
+      FILE_DATE_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "after")
+        .onChange(value => {
+          filter.operator = value as any;
+          // Re-render to show/hide value max input for range operators
+          this.renderEditor(this.contentEl);
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Date (e.g., 2024-01-01, today, -7d) or Days (for relative)")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = value;
+        });
+    });
+
+    // For range operators, add max value input
+    const currentOp = FILE_DATE_OPERATORS.find(op => op.operator === filter.operator);
+    if (currentOp?.needsValueMax) {
+      setting.addText(text => {
+        text
+          .setPlaceholder("Max value")
+          .setValue(String(filter.valueMax || ""))
+          .onChange(value => {
+            filter.valueMax = value;
+          });
+      });
+    }
+  }
+
+  private renderLinkCountFilterUI(setting: Setting, filter: LinkCountFilter): void {
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("outlinks", "Outlinks")
+        .addOption("backlinks", "Backlinks")
+        .setValue(filter.linkType || "outlinks")
+        .onChange(value => {
+          filter.linkType = value as any;
+        });
+    });
+
+    setting.addDropdown(dropdown => {
+      LINK_COUNT_OPERATORS.forEach(op => {
+        dropdown.addOption(op.operator, op.label);
+      });
+      dropdown
+        .setValue(filter.operator || "gte")
+        .onChange(value => {
+          filter.operator = value as any;
+        });
+    });
+
+    setting.addText(text => {
+      text
+        .setPlaceholder("Count")
+        .setValue(String(filter.value || ""))
+        .onChange(value => {
+          filter.value = parseInt(value) || 0;
+        });
+    });
+  }
+
+  private renderBookmarkFilterUI(setting: Setting, filter: BookmarkFilter): void {
+    // Dropdown for is bookmarked / is not bookmarked
+    setting.addDropdown(dropdown => {
+      dropdown
+        .addOption("is-bookmarked", "is bookmarked")
+        .addOption("not-bookmarked", "is not bookmarked")
+        .setValue(filter.isBookmarked ? "is-bookmarked" : "not-bookmarked")
+        .onChange(value => {
+          filter.isBookmarked = value === "is-bookmarked";
+        });
+    });
+  }
+
+  /**
+   * Validate the boolean expression
+   */
+  private validateExpression(): void {
+    // Re-render validation container
+    const container = this.contentEl.querySelector(".tag-tree-expression-validation") as HTMLElement;
+    if (container) {
+      this.renderExpressionValidation(container);
+    }
+  }
+
+  /**
+   * Render expression validation feedback
+   */
+  private renderExpressionValidation(container: HTMLElement): void {
+    container.empty();
+
+    // Ensure filters is initialized
+    if (!this.workingView.filters) {
+      return;
+    }
+
+    const expression = this.workingView.filters.expression?.trim() || "";
+    const labels = this.workingView.filters.filters?.map(lf => lf.label) || [];
+
+    if (!expression && labels.length > 0) {
+      // No expression - will default to AND all
+      container.createEl("p", {
+        text: `✓ No expression provided - will default to: ${labels.join(' & ')}`,
+        cls: "tag-tree-expression-valid",
+      }).style.color = "var(--text-muted)";
+      return;
+    }
+
+    if (!expression) {
+      return; // No expression and no filters = nothing to validate
+    }
+
+    // Parse expression
+    const parser = new ExpressionParser();
+    const parseResult = parser.parse(expression);
+
+    if (parseResult.errors.length > 0) {
+      // Parse errors
+      const errorEl = container.createEl("div", { cls: "tag-tree-expression-error" });
+      errorEl.style.color = "var(--text-error)";
+      errorEl.createEl("strong", { text: "⚠ Expression Error:" });
+      const errorList = errorEl.createEl("ul");
+      errorList.style.marginLeft = "20px";
+      parseResult.errors.forEach(error => {
+        errorList.createEl("li", { text: error });
+      });
+      return;
+    }
+
+    // Validate labels
+    const labelErrors = validateFilterLabels(parseResult.ast, labels);
+    if (labelErrors.length > 0) {
+      const errorEl = container.createEl("div", { cls: "tag-tree-expression-error" });
+      errorEl.style.color = "var(--text-error)";
+      errorEl.createEl("strong", { text: "⚠ Label Error:" });
+      const errorList = errorEl.createEl("ul");
+      errorList.style.marginLeft = "20px";
+      labelErrors.forEach(error => {
+        errorList.createEl("li", { text: error });
+      });
+      return;
+    }
+
+    // Valid expression
+    container.createEl("p", {
+      text: "✓ Expression is valid",
+      cls: "tag-tree-expression-valid",
+    }).style.color = "var(--text-success)";
+  }
+
+  /**
+   * Generate next available label (A, B, C, ...)
+   */
+  private generateNextLabel(): string {
+    // Ensure filters is initialized
+    if (!this.workingView.filters) {
+      return "A";
+    }
+
+    const existingLabels = new Set((this.workingView.filters.filters || []).map(lf => lf.label));
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    for (let i = 0; i < alphabet.length; i++) {
+      const label = alphabet[i];
+      if (!existingLabels.has(label)) {
+        return label;
+      }
+    }
+
+    // If all single letters are used, start with AA, AB, etc.
+    for (let i = 0; i < alphabet.length; i++) {
+      for (let j = 0; j < alphabet.length; j++) {
+        const label = alphabet[i] + alphabet[j];
+        if (!existingLabels.has(label)) {
+          return label;
+        }
+      }
+    }
+
+    return "Z" + Date.now(); // Fallback
+  }
+
+  /**
+   * Show modal to select filter type
+   */
+  private showFilterTypeSelectModal(): void {
+    const modal = new FilterTypeSelectModal(this.app, (filterType: FilterType) => {
+      // Ensure filters is initialized
+      if (!this.workingView.filters) {
+        this.workingView.filters = {
+          version: 2,
+          filters: [],
+          expression: "",
+        };
+      }
+
+      // Ensure filters array exists
+      if (!this.workingView.filters.filters) {
+        this.workingView.filters.filters = [];
+      }
+
+      const newFilter = this.createDefaultFilter(filterType);
+      const label = this.generateNextLabel();
+      const labeledFilter: LabeledFilter = {
+        label,
+        filter: newFilter,
+        enabled: true,
+        showInToolbar: false, // Default to hidden
+      };
+      this.workingView.filters.filters.push(labeledFilter);
+      this.renderEditor(this.contentEl);
+    });
+    modal.open();
+  }
+
+  /**
+   * Create a default filter of the given type
+   */
+  private createDefaultFilter(type: FilterType): Filter {
+    const baseFilter = {
+      id: generateFilterId(),
+      enabled: true,
+    };
+
+    switch (type) {
+      case "tag":
+        return { ...baseFilter, type: "tag", tag: "", matchMode: "prefix" } as TagFilter;
+      case "property-exists":
+        // PropertyExistsFilter uses negate field for "exists" vs "does not exist"
+        return { ...baseFilter, type: "property-exists", property: "", negate: false } as PropertyExistsFilter;
+      case "property-value":
+        return { ...baseFilter, type: "property-value", property: "", operator: "equals", value: "" } as PropertyValueFilter;
+      case "file-path":
+        return { ...baseFilter, type: "file-path", pattern: "", matchMode: "wildcard" } as FilePathFilter;
+      case "file-size":
+        return { ...baseFilter, type: "file-size", operator: "gt", value: 0 } as FileSizeFilter;
+      case "file-ctime":
+        return { ...baseFilter, type: "file-ctime", operator: "after", value: "" } as FileDateFilter;
+      case "file-mtime":
+        return { ...baseFilter, type: "file-mtime", operator: "after", value: "" } as FileDateFilter;
+      case "link-count":
+        return { ...baseFilter, type: "link-count", linkType: "outlinks", operator: "gte", value: 0 } as LinkCountFilter;
+      case "bookmark":
+        return { ...baseFilter, type: "bookmark", isBookmarked: true } as BookmarkFilter;
+      default:
+        throw new Error(`Unknown filter type: ${type}`);
+    }
+  }
+
+  /**
    * Save the view
    */
   private saveView(): void {
@@ -1160,5 +1931,101 @@ class ViewEditorModal extends Modal {
     // Save
     this.onSave(this.workingView);
     this.close();
+  }
+}
+
+/**
+ * Modal to select a filter type
+ */
+class FilterTypeSelectModal extends Modal {
+  private onSelect: (filterType: FilterType) => void;
+
+  constructor(app: App, onSelect: (filterType: FilterType) => void) {
+    super(app);
+    this.onSelect = onSelect;
+  }
+
+  onOpen() {
+    const { contentEl, titleEl } = this;
+    titleEl.setText("Select Filter Type");
+
+    contentEl.createEl("p", {
+      text: "Choose the type of filter to add:",
+      cls: "setting-item-description",
+    });
+
+    // Create a button for each filter type
+    const filterTypes: FilterType[] = [
+      "tag",
+      "property-exists",
+      "property-value",
+      "file-path",
+      "file-size",
+      "file-ctime",
+      "file-mtime",
+      "link-count",
+      "bookmark",
+    ];
+
+    const buttonsContainer = contentEl.createDiv({ cls: "tag-tree-filter-type-buttons" });
+    buttonsContainer.style.display = "grid";
+    buttonsContainer.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
+    buttonsContainer.style.gap = "var(--size-4-2)";
+    buttonsContainer.style.marginTop = "var(--size-4-4)";
+
+    filterTypes.forEach(filterType => {
+      const metadata = FILTER_TYPE_METADATA[filterType];
+
+      const button = buttonsContainer.createEl("button", { cls: "tag-tree-filter-type-button" });
+      button.style.padding = "var(--size-4-3)";
+      button.style.textAlign = "left";
+      button.style.border = "1px solid var(--background-modifier-border)";
+      button.style.borderRadius = "var(--radius-s)";
+      button.style.backgroundColor = "var(--background-secondary)";
+      button.style.cursor = "pointer";
+      button.style.display = "flex";
+      button.style.flexDirection = "column";
+      button.style.gap = "var(--size-4-2)";
+      button.style.minHeight = "80px";
+
+      // Header row with icon and title side by side
+      const headerRow = button.createDiv();
+      headerRow.style.display = "flex";
+      headerRow.style.alignItems = "center";
+      headerRow.style.gap = "var(--size-4-2)";
+
+      const iconEl = headerRow.createDiv();
+      setIcon(iconEl, metadata.icon);
+      iconEl.style.color = "var(--text-muted)";
+      iconEl.style.flexShrink = "0";
+
+      const titleEl = headerRow.createEl("div", { text: metadata.name });
+      titleEl.style.fontWeight = "600";
+      titleEl.style.color = "var(--text-normal)";
+
+      // Description on separate line
+      button.createEl("div", {
+        text: metadata.description,
+        cls: "setting-item-description",
+      });
+
+      button.addEventListener("click", () => {
+        this.onSelect(filterType);
+        this.close();
+      });
+
+      button.addEventListener("mouseenter", () => {
+        button.style.backgroundColor = "var(--background-modifier-hover)";
+      });
+
+      button.addEventListener("mouseleave", () => {
+        button.style.backgroundColor = "var(--background-secondary)";
+      });
+    });
+  }
+
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
   }
 }

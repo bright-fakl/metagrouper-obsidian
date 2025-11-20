@@ -4,6 +4,7 @@ import { TreeBuilder } from "./tree/tree-builder";
 import { TreeComponent } from "./components/tree-component";
 import { TreeToolbar } from "./components/tree-toolbar";
 import { ViewState, SortMode, FileSortMode, DEFAULT_VIEW_STATE } from "./types/view-state";
+import { HierarchyConfig } from "./types/hierarchy-config";
 import { SearchQueryBuilder } from "./utils/search-query-builder";
 import { ObsidianSearch } from "./utils/obsidian-search";
 import { TreeNode } from "./types/tree-node";
@@ -23,6 +24,9 @@ export class TagTreeView extends ItemView {
   private currentViewName: string;
   private saveStateTimer: NodeJS.Timeout | null = null;
   private readonly DEBOUNCE_MS = 500;
+
+  // Working copy of view config (with toolbar filter modifications)
+  private workingViewConfig: HierarchyConfig | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: TagTreePlugin) {
     super(leaf);
@@ -85,7 +89,7 @@ export class TagTreeView extends ItemView {
       await this.indexer.initialize();
 
       // Build tree builder
-      this.treeBuilder = new TreeBuilder(this.indexer);
+      this.treeBuilder = new TreeBuilder(this.app, this.indexer);
 
       // Initialize search utility
       this.obsidianSearch = new ObsidianSearch(this.app);
@@ -136,11 +140,21 @@ export class TagTreeView extends ItemView {
           onViewChange: (viewName: string) => {
             this.handleViewChange(viewName);
           },
+          onRefreshTree: () => {
+            this.handleRefreshTree();
+          },
+          onFilterOverrideToggle: (enabled: boolean) => {
+            this.handleFilterOverrideToggle(enabled);
+          },
+          onQuickFilterChange: () => {
+            this.handleQuickFilterChange();
+          },
         },
         this.treeComponent.getFileSortMode(),
         this.treeComponent.getFileVisibility(),
         this.plugin.settings.savedViews,
-        this.currentViewName
+        this.currentViewName,
+        this.getCurrentViewConfig()
       );
       this.toolbar.render(toolbarContainer);
 
@@ -274,9 +288,13 @@ export class TagTreeView extends ItemView {
     // Update current view name
     this.currentViewName = viewName;
 
+    // Reset working config when changing views
+    this.workingViewConfig = null;
+
     // Update toolbar dropdown to reflect the change
     if (this.toolbar) {
       this.toolbar.setCurrentViewName(viewName);
+      this.toolbar.setCurrentViewConfig(this.getCurrentViewConfig());
     }
 
     // Clear expanded nodes when switching views (or restore view-specific state)
@@ -307,6 +325,103 @@ export class TagTreeView extends ItemView {
   }
 
   /**
+   * Get current view configuration
+   */
+  private getCurrentViewConfig(): HierarchyConfig | null {
+    return this.plugin.settings.savedViews.find(
+      (v) => v.name === this.currentViewName
+    ) || null;
+  }
+
+  /**
+   * Handle refresh tree button click
+   */
+  private handleRefreshTree(): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Rebuild and re-render tree with current filters
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.buildAndRenderTree(container);
+    }
+  }
+
+  /**
+   * Handle filter override toggle
+   */
+  private handleFilterOverrideToggle(enabled: boolean): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // Update view state
+    const viewState = this.plugin.settings.viewStates[this.currentViewName];
+    if (!viewState) {
+      this.plugin.settings.viewStates[this.currentViewName] = {
+        ...DEFAULT_VIEW_STATE,
+        filterOverrides: {
+          enabled: enabled,
+          filters: {
+            version: 2,
+            filters: [],
+            expression: "",
+          },
+        },
+      };
+    } else {
+      if (!viewState.filterOverrides) {
+        viewState.filterOverrides = {
+          enabled: enabled,
+          filters: {
+            version: 2,
+            filters: [],
+            expression: "",
+          },
+        };
+      } else {
+        viewState.filterOverrides.enabled = enabled;
+      }
+    }
+
+    // Save settings
+    this.plugin.saveSettings();
+
+    // Rebuild tree if needed (when disabling, revert to saved filters)
+    if (!enabled) {
+      const container = this.containerEl.querySelector(
+        ".tag-tree-content"
+      ) as HTMLElement;
+      if (container) {
+        this.buildAndRenderTree(container);
+      }
+    }
+  }
+
+  /**
+   * Handle quick filter value changes from toolbar
+   */
+  private handleQuickFilterChange(): void {
+    if (!this.treeBuilder || !this.treeComponent) {
+      return;
+    }
+
+    // DO NOT save settings - toolbar filter changes are temporary overrides
+    // The filter values are modified in the config object in memory only
+
+    // Rebuild tree to apply new filter values
+    const container = this.containerEl.querySelector(
+      ".tag-tree-content"
+    ) as HTMLElement;
+    if (container) {
+      this.buildAndRenderTree(container);
+    }
+  }
+
+  /**
    * Build and render tree based on current view configuration
    */
   private buildAndRenderTree(container: HTMLElement): void {
@@ -315,15 +430,28 @@ export class TagTreeView extends ItemView {
     }
 
     // Get the current view configuration
-    const viewConfig = this.plugin.settings.savedViews.find(
+    const savedViewConfig = this.plugin.settings.savedViews.find(
       (v) => v.name === this.currentViewName
     );
 
-    if (!viewConfig) {
+    if (!savedViewConfig) {
       // Fallback to default view if current view not found
       container.createDiv("tag-tree-error", (el) => {
         el.textContent = `View "${this.currentViewName}" not found. Please check your settings.`;
       });
+      return;
+    }
+
+    // Use working copy if it exists, otherwise create a fresh copy from settings
+    // The working copy preserves toolbar filter modifications
+    if (!this.workingViewConfig) {
+      // Create a deep copy for this render session
+      this.workingViewConfig = JSON.parse(JSON.stringify(savedViewConfig));
+    }
+
+    const viewConfig = this.workingViewConfig;
+    if (!viewConfig) {
+      // This should never happen, but satisfy TypeScript
       return;
     }
 
@@ -378,8 +506,35 @@ export class TagTreeView extends ItemView {
     const viewState = this.plugin.settings.viewStates[this.currentViewName];
     const tree = this.treeBuilder.buildFromHierarchy(viewConfig, viewState);
 
+    // Update toolbar with unique file count and current view config
+    if (this.toolbar) {
+      const uniqueFileCount = this.countUniqueFiles(tree);
+      this.toolbar.setFileCount(uniqueFileCount);
+      this.toolbar.setCurrentViewConfig(viewConfig);
+    }
+
     // Render tree
     this.treeComponent.render(tree, container);
+  }
+
+  /**
+   * Count unique files in the tree (same file can appear multiple times)
+   */
+  private countUniqueFiles(tree: TreeNode): number {
+    const uniqueFiles = new Set<string>();
+
+    const traverse = (node: TreeNode) => {
+      if (node.type === "file" && node.files && node.files.length > 0) {
+        // File nodes have a single file in their files array
+        uniqueFiles.add(node.files[0].path);
+      }
+      if (node.children) {
+        node.children.forEach(child => traverse(child));
+      }
+    };
+
+    traverse(tree);
+    return uniqueFiles.size;
   }
 
   /**
@@ -403,6 +558,14 @@ export class TagTreeView extends ItemView {
    * Public method to refresh the tree (called from plugin when settings change)
    */
   refresh(): void {
+    // Reset working config to pick up settings changes
+    this.workingViewConfig = null;
+
+    // Clear toolbar's stored original filter values so fresh ones can be stored
+    if (this.toolbar) {
+      this.toolbar.clearOriginalFilterValues();
+    }
+
     this.refreshTree();
   }
 

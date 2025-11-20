@@ -17,7 +17,7 @@ describe("TreeBuilder", () => {
     app = new App();
     clearMockVault(app);
     indexer = new VaultIndexer(app);
-    builder = new TreeBuilder(indexer);
+    builder = new TreeBuilder(app, indexer);
   });
 
   describe("Basic Tree Building", () => {

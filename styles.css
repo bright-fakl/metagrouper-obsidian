@@ -146,6 +146,71 @@
   margin-top: 0;
 }
 
+/* View Editor Modal - Fixed Header/Footer Layout */
+/* Prevent modal container from scrolling - only content wrapper should scroll */
+.modal:has(.tag-tree-modal-header) .modal-content {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-tree-modal-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-primary);
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding: var(--size-4-3) var(--size-4-4);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.tag-tree-modal-header .setting-item {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tag-tree-modal-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--size-4-3) 0;
+  min-height: 0; /* Important for flex children to allow scrolling */
+}
+
+.tag-tree-modal-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: var(--background-primary);
+  border-top: 1px solid var(--background-modifier-border);
+  padding: var(--size-4-3) var(--size-4-4);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.tag-tree-modal-footer .setting-item {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--size-2-3);
+}
+
+.tag-tree-modal-footer .setting-item-info {
+  display: none;
+}
+
+.tag-tree-modal-footer .setting-item-control {
+  display: flex;
+  gap: var(--size-2-3);
+  justify-content: flex-end;
+}
+
 /* Support buttons styling */
 .tag-tree-support-buttons button:hover {
   opacity: 0.9;
@@ -675,4 +740,177 @@
 
 .theme-dark .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   filter: brightness(1.8) saturate(1.2);
+}
+
+/* ========================================
+   Filter Configuration UI
+   ======================================== */
+
+/* Filter groups container */
+.tag-tree-filter-groups {
+  margin-top: var(--size-4-3);
+}
+
+/* Individual filter group */
+.tag-tree-filter-group {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: var(--size-4-3);
+  margin-bottom: var(--size-4-4);
+  background-color: var(--background-secondary);
+}
+
+.tag-tree-filter-group-header {
+  margin-bottom: var(--size-4-3);
+  border-bottom: 1px solid var(--background-modifier-border);
+  padding-bottom: var(--size-4-2);
+}
+
+/* Filter list */
+.tag-tree-filter-list {
+  margin-left: var(--size-4-2);
+  margin-top: var(--size-4-2);
+}
+
+/* Individual filter item */
+.tag-tree-filter-item {
+  margin-bottom: var(--size-4-2);
+  padding: var(--size-4-2);
+  background-color: var(--background-primary);
+  border-radius: var(--radius-s);
+  border: 1px solid var(--background-modifier-border);
+}
+
+/* Filter item setting - make it wrap properly */
+.tag-tree-filter-item .setting-item {
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+}
+
+.tag-tree-filter-item .setting-item-info {
+  flex: 0 0 auto;
+  min-width: 100px;
+  max-width: 150px;
+}
+
+.tag-tree-filter-item .setting-item-control {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--size-4-2);
+  justify-content: flex-start;
+}
+
+/* Make input fields responsive */
+.tag-tree-filter-item .setting-item-control input[type="text"] {
+  min-width: 120px;
+  max-width: 200px;
+  flex: 1 1 auto;
+}
+
+.tag-tree-filter-item .setting-item-control select {
+  min-width: 100px;
+  flex: 0 1 auto;
+}
+
+/* NOT label */
+.tag-tree-filter-not-label {
+  font-weight: 600;
+  color: var(--text-accent);
+  margin-left: var(--size-2-1);
+}
+
+/* Filter type selection modal */
+.tag-tree-filter-type-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--size-4-3);
+  margin-top: var(--size-4-4);
+}
+
+.tag-tree-filter-type-button {
+  padding: var(--size-4-4);
+  text-align: left;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background-color: var(--background-secondary);
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.tag-tree-filter-type-button:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.tag-tree-filter-type-button .svg-icon {
+  margin-bottom: var(--size-4-2);
+  color: var(--text-muted);
+}
+
+.tag-tree-filter-type-button .setting-item-description {
+  margin: 0;
+  font-size: var(--font-ui-smaller);
+  line-height: 1.4;
+}
+
+/* ============================================================================
+ * Toolbar filter explanation
+ * ========================================================================== */
+
+.tag-tree-filter-explanation {
+  margin-top: var(--size-4-2);
+  margin-bottom: var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  padding: 0;
+  background-color: var(--background-secondary);
+}
+
+.tag-tree-filter-explanation summary {
+  padding: var(--size-4-2) var(--size-4-3);
+  cursor: pointer;
+  font-weight: 500;
+  user-select: none;
+}
+
+.tag-tree-filter-explanation summary:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.tag-tree-filter-explanation-content {
+  padding: var(--size-4-2) var(--size-4-3);
+  border-top: 1px solid var(--background-modifier-border);
+  font-size: var(--font-ui-smaller);
+}
+
+.tag-tree-filter-explanation-mode {
+  margin-bottom: var(--size-4-2);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.tag-tree-filter-explanation-group {
+  margin-bottom: var(--size-4-2);
+}
+
+.tag-tree-filter-explanation-group:last-child {
+  margin-bottom: 0;
+}
+
+.tag-tree-filter-explanation-group ul {
+  margin: var(--size-2-2) 0 0 var(--size-4-4);
+  padding: 0;
+  list-style-type: disc;
+}
+
+.tag-tree-filter-explanation-group li {
+  margin: var(--size-2-1) 0;
+  color: var(--text-normal);
 }

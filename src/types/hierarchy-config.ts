@@ -1,4 +1,5 @@
 import { SortMode, FileSortMode } from "./view-state";
+import { FilterConfig } from "./filters";
 
 /**
  * Level color modes for visual hierarchy differentiation
@@ -76,8 +77,8 @@ export interface HierarchyConfig {
   /** Unique name for this view configuration */
   name: string;
 
-  /** Optional root tag to filter files (e.g., "#project" to only include project files) */
-  rootTag?: string;
+  /** Optional filters to restrict which files are shown in this view */
+  filters?: FilterConfig;
 
   /** Ordered list of hierarchy levels (top to bottom) */
   levels: HierarchyLevel[];
@@ -99,6 +100,9 @@ export interface HierarchyConfig {
 
   /** Optional custom color for file nodes (CSS color value) */
   fileColor?: string;
+
+  /** Filter types to expose in toolbar (for quick overrides) */
+  toolbarFilterTypes?: import("./filters").FilterType[];
 }
 
 /**
@@ -262,15 +266,6 @@ export function validateHierarchyConfig(
     errors.push("Hierarchy config 'name' must be a string");
   } else if (config.name.trim() === "") {
     errors.push("Hierarchy config 'name' cannot be empty");
-  }
-
-  // Validate optional rootTag
-  if (config.rootTag !== undefined) {
-    if (typeof config.rootTag !== "string") {
-      errors.push("Hierarchy config 'rootTag' must be a string");
-    } else if (config.rootTag.trim() === "") {
-      errors.push("Hierarchy config 'rootTag' cannot be empty");
-    }
   }
 
   // Validate levels
@@ -475,7 +470,21 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
   },
   {
     name: "Projects by Status",
-    rootTag: "project",
+    filters: {
+      version: 2,
+      filters: [
+        {
+          label: "A",
+          filter: {
+            id: "project-tag",
+            type: "tag",
+            tag: "project",
+            matchMode: "prefix",
+          },
+        },
+      ],
+      expression: "A",
+    },
     levels: [
       {
         type: "property",
@@ -507,7 +516,21 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
   },
   {
     name: "Research by Topic and Year",
-    rootTag: "research",
+    filters: {
+      version: 2,
+      filters: [
+        {
+          label: "A",
+          filter: {
+            id: "research-tag",
+            type: "tag",
+            tag: "research",
+            matchMode: "prefix",
+          },
+        },
+      ],
+      expression: "A",
+    },
     levels: [
       {
         type: "property",
@@ -540,7 +563,21 @@ export const EXAMPLE_HIERARCHY_CONFIGS: HierarchyConfig[] = [
   },
   {
     name: "Tasks by Status and Project",
-    rootTag: "task",
+    filters: {
+      version: 2,
+      filters: [
+        {
+          label: "A",
+          filter: {
+            id: "task-tag",
+            type: "tag",
+            tag: "task",
+            matchMode: "prefix",
+          },
+        },
+      ],
+      expression: "A",
+    },
     levels: [
       {
         type: "property",

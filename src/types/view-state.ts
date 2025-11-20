@@ -1,3 +1,5 @@
+import { FilterConfig, FilterType } from "./filters";
+
 /**
  * View state for persistence across sessions
  */
@@ -16,6 +18,15 @@ export interface ViewState {
 
   /** Scroll position in the tree view (for Phase 4.1) */
   scrollPosition?: number;
+
+  /** Toolbar filter overrides (temporary filters applied from toolbar) */
+  filterOverrides?: {
+    enabled: boolean;
+    filters: FilterConfig;
+  };
+
+  /** Which filter types to expose in toolbar (configured per-view) */
+  toolbarFilterTypes?: FilterType[];
 }
 
 /**

@@ -146,7 +146,7 @@ export class TagTreeCodeblockProcessor {
       const indexer = new VaultIndexer(this.app);
       await indexer.initialize();
 
-      const builder = new TreeBuilder(indexer);
+      const builder = new TreeBuilder(this.app, indexer);
 
       // Build tree from hierarchy configuration
       // TreeBuilder will internally optimize for simple tag hierarchies (depth=-1)

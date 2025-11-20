@@ -25,6 +25,9 @@ export class TagTreeView extends ItemView {
   private saveStateTimer: NodeJS.Timeout | null = null;
   private readonly DEBOUNCE_MS = 500;
 
+  // Working copy of view config (with toolbar filter modifications)
+  private workingViewConfig: HierarchyConfig | null = null;
+
   constructor(leaf: WorkspaceLeaf, plugin: TagTreePlugin) {
     super(leaf);
     this.plugin = plugin;
@@ -285,6 +288,9 @@ export class TagTreeView extends ItemView {
     // Update current view name
     this.currentViewName = viewName;
 
+    // Reset working config when changing views
+    this.workingViewConfig = null;
+
     // Update toolbar dropdown to reflect the change
     if (this.toolbar) {
       this.toolbar.setCurrentViewName(viewName);
@@ -403,8 +409,8 @@ export class TagTreeView extends ItemView {
       return;
     }
 
-    // Save settings (filter values were modified in the config object)
-    this.plugin.saveSettings();
+    // DO NOT save settings - toolbar filter changes are temporary overrides
+    // The filter values are modified in the config object in memory only
 
     // Rebuild tree to apply new filter values
     const container = this.containerEl.querySelector(
@@ -424,15 +430,28 @@ export class TagTreeView extends ItemView {
     }
 
     // Get the current view configuration
-    const viewConfig = this.plugin.settings.savedViews.find(
+    const savedViewConfig = this.plugin.settings.savedViews.find(
       (v) => v.name === this.currentViewName
     );
 
-    if (!viewConfig) {
+    if (!savedViewConfig) {
       // Fallback to default view if current view not found
       container.createDiv("tag-tree-error", (el) => {
         el.textContent = `View "${this.currentViewName}" not found. Please check your settings.`;
       });
+      return;
+    }
+
+    // Use working copy if it exists, otherwise create a fresh copy from settings
+    // The working copy preserves toolbar filter modifications
+    if (!this.workingViewConfig) {
+      // Create a deep copy for this render session
+      this.workingViewConfig = JSON.parse(JSON.stringify(savedViewConfig));
+    }
+
+    const viewConfig = this.workingViewConfig;
+    if (!viewConfig) {
+      // This should never happen, but satisfy TypeScript
       return;
     }
 
@@ -539,6 +558,8 @@ export class TagTreeView extends ItemView {
    * Public method to refresh the tree (called from plugin when settings change)
    */
   refresh(): void {
+    // Reset working config to pick up settings changes
+    this.workingViewConfig = null;
     this.refreshTree();
   }
 

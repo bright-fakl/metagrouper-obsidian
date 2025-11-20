@@ -441,14 +441,14 @@ export class TreeToolbar {
     row.style.backgroundColor = "var(--background-primary)";
     row.style.borderRadius = "var(--radius-s)";
 
-    // Filter label badge
+    // Filter label badge - purple bold text on light background
     const badge = row.createSpan({ text: labeledFilter.label });
     badge.style.display = "inline-block";
     badge.style.padding = "4px 8px";
-    badge.style.backgroundColor = "var(--interactive-accent)";
-    badge.style.color = "var(--text-on-accent)";
+    badge.style.backgroundColor = "var(--background-secondary)";
+    badge.style.color = "var(--interactive-accent)";
     badge.style.borderRadius = "var(--radius-s)";
-    badge.style.fontSize = "0.85em";
+    badge.style.fontSize = "0.9em";
     badge.style.fontWeight = "700";
     badge.style.minWidth = "24px";
     badge.style.textAlign = "center";
@@ -536,21 +536,18 @@ export class TreeToolbar {
   }
 
   private renderPropertyValueFilterControls(container: HTMLElement, filter: any): void {
-    // Show property name as read-only label
-    const propLabel = container.createSpan({ text: `Property "${filter.property}"` });
-    propLabel.style.fontWeight = "500";
+    // Show property name as read-only label (no quotes, regular font)
+    const propLabel = container.createSpan({ text: `Property ${filter.property}` });
     propLabel.style.marginRight = "var(--size-2-2)";
 
-    // For boolean operators, show toggle (allow changing condition only)
+    // For boolean operators, show dropdown instead of toggle
     if (filter.operator === "is-true" || filter.operator === "is-false") {
-      const label = container.createSpan({ text: "is" });
-      label.style.marginRight = "var(--size-2-1)";
-
-      new ToggleComponent(container)
-        .setValue(filter.operator === "is-true")
-        .setTooltip(filter.operator === "is-true" ? "true" : "false")
+      new DropdownComponent(container)
+        .addOption("is-true", "is true")
+        .addOption("is-false", "is false")
+        .setValue(filter.operator)
         .onChange((value) => {
-          filter.operator = value ? "is-true" : "is-false";
+          filter.operator = value as any;
           this.onFilterChanged();
         });
     } else {
@@ -758,15 +755,20 @@ export class TreeToolbar {
 
     const filters = this.currentViewConfig.filters;
 
-    // Show ALL filters (not just eye-selected ones)
-    const filtersListEl = content.createEl("ul");
-    filtersListEl.style.marginTop = "var(--size-2-2)";
+    // Show ALL filters (not just eye-selected ones) - no bullets, less indentation, larger font
+    const filtersContainer = content.createEl("div");
+    filtersContainer.style.marginTop = "var(--size-4-2)";
+    filtersContainer.style.fontSize = "0.95em";
 
     filters.filters.forEach((labeledFilter) => {
       if (labeledFilter.enabled === false) return; // Skip disabled filters
 
+      const filterRow = filtersContainer.createEl("div");
+      filterRow.style.marginBottom = "var(--size-2-2)";
+      filterRow.style.paddingLeft = "var(--size-2-2)";
+
       const filterText = `${labeledFilter.label}: ${this.getFilterDescription(labeledFilter.filter as any)}`;
-      filtersListEl.createEl("li", { text: filterText });
+      filterRow.textContent = filterText;
     });
   }
 

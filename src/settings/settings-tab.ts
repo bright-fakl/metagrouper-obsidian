@@ -1339,17 +1339,6 @@ class ViewEditorModal extends Modal {
         break;
     }
 
-    // Show in toolbar toggle
-    setting.addExtraButton(button => {
-      const showInToolbar = labeledFilter.showInToolbar === true; // Default false (hidden)
-      button
-        .setIcon(showInToolbar ? "eye" : "eye-off")
-        .setTooltip(showInToolbar ? "Hide from toolbar explanation" : "Show in toolbar explanation")
-        .onClick(() => {
-          labeledFilter.showInToolbar = !showInToolbar;
-          this.renderEditor(this.contentEl);
-        });
-    });
 
     // Delete button
     setting.addExtraButton(button => {
@@ -1892,7 +1881,6 @@ class ViewEditorModal extends Modal {
         label,
         filter: newFilter,
         enabled: true,
-        showInToolbar: false, // Default to hidden
       };
       this.workingView.filters.filters.push(labeledFilter);
       this.renderEditor(this.contentEl);

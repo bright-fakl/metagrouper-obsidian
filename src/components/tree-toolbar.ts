@@ -87,18 +87,8 @@ export class TreeToolbar {
     this.container = container;
     container.empty();
 
-    // Create collapsible toolbar container
-    const details = container.createEl("details", {
-      cls: "tag-tree-toolbar"
-    });
-
-    if (!this.isCollapsed) {
-      details.setAttribute("open", "");
-    }
-
-    // Collapsible header with view name
-    const summary = details.createEl("summary", { cls: "tag-tree-toolbar-summary" });
-    const headerContainer = summary.createDiv({ cls: "tag-tree-toolbar-header" });
+    // Create toolbar header container (no longer collapsible)
+    const headerContainer = container.createDiv({ cls: "tag-tree-toolbar-header" });
 
     // First line: View name and switcher
     const headerFirstLine = headerContainer.createDiv({ cls: "tag-tree-toolbar-header-first-line" });
@@ -249,75 +239,6 @@ export class TreeToolbar {
           this.callbacks.onOpenViewSettings();
         }
       });
-    }
-
-    // Track collapse state
-    details.addEventListener("toggle", () => {
-      this.isCollapsed = !details.hasAttribute("open");
-    });
-
-    // Toolbar content
-    const toolbar = details.createDiv("tag-tree-toolbar-content");
-
-    // Grouped by section
-    const groupedByTitle = toolbar.createEl("div", { cls: "tag-tree-grouped-by-title" });
-    groupedByTitle.style.fontWeight = "600";
-    groupedByTitle.style.fontSize = "0.9em";
-    groupedByTitle.textContent = "Grouped by";
-
-    // Hierarchy description
-    if (this.currentViewConfig?.levels && this.currentViewConfig.levels.length > 0) {
-      const hierarchyDesc = toolbar.createEl("div", { cls: "tag-tree-hierarchy-description" });
-      hierarchyDesc.style.fontSize = "0.9em";
-      hierarchyDesc.style.color = "var(--text-muted)";
-      hierarchyDesc.style.marginBottom = "var(--size-4-2)";
-
-      const descText = this.getHierarchyDescription();
-      hierarchyDesc.textContent = descText;
-    }
-
-    // Files count
-    const filesCount = toolbar.createEl("div", { cls: "tag-tree-files-count" });
-    filesCount.style.fontSize = "0.9em";
-    filesCount.style.color = "var(--text-muted)";
-    filesCount.style.marginBottom = "var(--size-4-2)";
-    filesCount.style.fontWeight = "600"; // Make it bold
-
-    // For now, just show the filtered count. In a real implementation, we'd need total count
-    // TODO: Add total file count tracking
-    const hasFilters = this.currentViewConfig?.filters && this.currentViewConfig.filters.filters?.length > 0;
-    filesCount.textContent = hasFilters
-      ? `Found ${this.fileCount} files (filtered)`
-      : `Found ${this.fileCount} files`;
-
-    // Filters title (always show)
-    const filtersTitle = toolbar.createEl("div", { cls: "tag-tree-filters-title" });
-    filtersTitle.style.fontWeight = "600";
-    filtersTitle.style.fontSize = "0.9em";
-    filtersTitle.style.marginBottom = "var(--size-4-2)";
-    filtersTitle.createSpan({ text: "Filters " });
-    const countSpan = filtersTitle.createSpan({ text: `(${this.fileCount} files)` });
-    countSpan.style.color = "var(--text-muted)";
-    countSpan.style.fontWeight = "400";
-
-    // Filters section
-    if (this.currentViewConfig?.filters && this.currentViewConfig.filters.filters?.length > 0) {
-
-      // Filter expression (always show first)
-      const allFilters = this.currentViewConfig.filters.filters;
-      this.renderFilterExpression(toolbar, allFilters);
-
-      // Filter descriptions
-      this.renderFilterDescriptions(toolbar);
-
-      // Interactive filter controls (for eye-selected filters)
-      const toolbarVisibleFilters = this.currentViewConfig.filters.filters.filter(
-        lf => lf.enabled !== false && lf.showInToolbar === true
-      );
-      if (toolbarVisibleFilters.length > 0) {
-        const filterControlsRow = toolbar.createDiv("tag-tree-toolbar-row");
-        this.renderInteractiveFilters(filterControlsRow, toolbarVisibleFilters);
-      }
     }
   }
 
@@ -842,39 +763,6 @@ export class TreeToolbar {
     });
   }
 
-  /**
-   * Render filter explanation (directly under filter controls)
-   */
-  private renderFilterExplanation(toolbar: HTMLElement): void {
-    const content = toolbar.createDiv({ cls: "tag-tree-filter-explanation-content" });
-
-    if (!this.currentViewConfig?.filters || !this.currentViewConfig.filters.filters || this.currentViewConfig.filters.filters.length === 0) {
-      content.createSpan({ text: "No filters defined" });
-      return;
-    }
-
-    const filters = this.currentViewConfig.filters;
-    const allFilters = filters.filters.filter(lf => lf.enabled !== false);
-    const interactiveFilters = allFilters.filter(lf => lf.showInToolbar === true);
-
-    // Show filter expression with highlighted quick filter labels
-    if (filters.expression || allFilters.length > 0) {
-      this.renderFilterExpression(content, interactiveFilters);
-    }
-
-    // Show ALL filters (not just eye-selected ones) - no bullets, less indentation, larger font
-    const filtersContainer = content.createEl("div");
-    filtersContainer.style.marginTop = "var(--size-4-2)";
-    filtersContainer.style.fontSize = "1.1em";
-
-    allFilters.forEach((labeledFilter) => {
-      const filterRow = filtersContainer.createEl("div");
-      filterRow.style.marginBottom = "var(--size-2-2)";
-
-      const filterText = `${labeledFilter.label}: ${this.getFilterDescription(labeledFilter.filter as any)}`;
-      filterRow.textContent = filterText;
-    });
-  }
 
   /**
    * Get description of the hierarchy configuration
@@ -1101,9 +989,6 @@ export class TreeToolbar {
    * Update the current view config (for filter information)
    */
   setCurrentViewConfig(viewConfig: HierarchyConfig | null): void {
-    const hadInteractiveFilters = this.currentViewConfig?.filters?.filters?.some(lf => lf.enabled !== false && lf.showInToolbar === true) ?? false;
-    const hasInteractiveFilters = viewConfig?.filters?.filters?.some(lf => lf.enabled !== false && lf.showInToolbar === true) ?? false;
-
     this.currentViewConfig = viewConfig;
 
     // Only store original filter values if we don't have them yet
@@ -1115,11 +1000,6 @@ export class TreeToolbar {
       });
     }
 
-    // Only re-render if the interactive filter state changed
-    // This prevents unnecessary re-renders that could reset display mode
-    if (hadInteractiveFilters !== hasInteractiveFilters && this.container) {
-      this.render(this.container);
-    }
   }
 
   /**

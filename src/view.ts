@@ -560,6 +560,12 @@ export class TagTreeView extends ItemView {
   refresh(): void {
     // Reset working config to pick up settings changes
     this.workingViewConfig = null;
+
+    // Clear toolbar's stored original filter values so fresh ones can be stored
+    if (this.toolbar) {
+      this.toolbar.clearOriginalFilterValues();
+    }
+
     this.refreshTree();
   }
 

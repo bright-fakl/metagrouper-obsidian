@@ -974,6 +974,10 @@ export class TreeToolbar {
 
     this.currentViewName = viewName;
 
+    // Clear original filter values when changing views
+    // This allows fresh originals to be stored for the new view
+    this.originalFilterValues.clear();
+
     // Re-render toolbar to update view dropdown and header
     if (this.container) {
       this.render(this.container);
@@ -986,9 +990,9 @@ export class TreeToolbar {
   setCurrentViewConfig(viewConfig: HierarchyConfig | null): void {
     this.currentViewConfig = viewConfig;
 
-    // Store original filter values for reset functionality
-    this.originalFilterValues.clear();
-    if (viewConfig?.filters?.filters) {
+    // Only store original filter values if we don't have them yet
+    // This prevents re-storing already-modified values as "originals"
+    if (this.originalFilterValues.size === 0 && viewConfig?.filters?.filters) {
       viewConfig.filters.filters.forEach((labeledFilter) => {
         // Deep copy the filter object
         this.originalFilterValues.set(labeledFilter.label, JSON.parse(JSON.stringify(labeledFilter.filter)));
@@ -999,6 +1003,13 @@ export class TreeToolbar {
     if (this.container) {
       this.render(this.container);
     }
+  }
+
+  /**
+   * Clear stored original filter values (called when settings are refreshed)
+   */
+  clearOriginalFilterValues(): void {
+    this.originalFilterValues.clear();
   }
 
   /**

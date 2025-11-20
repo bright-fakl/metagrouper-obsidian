@@ -51,6 +51,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 100%;
   margin-bottom: var(--size-2-1);
 }
 
@@ -61,6 +62,8 @@
   height: 0;
   position: absolute;
   left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   border-style: solid;
   border-width: 5px 0 5px 8px;
   border-color: transparent transparent transparent var(--text-muted);
@@ -75,6 +78,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
 }
 
 .tag-tree-toolbar-title svg {

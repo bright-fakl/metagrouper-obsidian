@@ -114,8 +114,6 @@ export class TreeToolbar {
         e.stopPropagation();
         this.showViewSwitcherMenu(viewTitle);
       });
-      viewNameSpan.style.textDecoration = "underline";
-      viewNameSpan.style.textDecorationStyle = "dotted";
     }
 
     // Second line: Header controls group (reordered)
@@ -986,6 +984,12 @@ export class TreeToolbar {
     }
 
     this.currentViewName = viewName;
+
+    // Also update the view config if we have it in saved views
+    const viewConfig = this.savedViews.find(view => view.name === viewName);
+    if (viewConfig) {
+      this.setCurrentViewConfig(viewConfig);
+    }
 
     // Clear original filter values when changing views
     // This allows fresh originals to be stored for the new view

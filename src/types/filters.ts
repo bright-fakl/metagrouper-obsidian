@@ -16,7 +16,6 @@ export interface LabeledFilter {
   label: string;                // Unique label: A, B, C, etc.
   filter: Filter;               // The actual filter (tag, property, etc.)
   enabled?: boolean;            // Can disable individual filters
-  showInToolbar?: boolean;      // Show this filter in toolbar explanation (default: true)
 }
 
 // ============================================================================

@@ -86,7 +86,7 @@ export class ObsidianSearch {
         }, 100);
       }
     } catch (error) {
-      console.error("[TagTree] Error opening search with query:", error);
+      console.error("[MetaGrouper] Error opening search with query:", error);
       // Fallback: just open the search view
       (this.app as any).commands?.executeCommandById("global-search:open");
     }

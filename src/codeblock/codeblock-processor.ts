@@ -1,5 +1,5 @@
 import { App, MarkdownPostProcessorContext } from "obsidian";
-import TagTreePlugin from "../main";
+import MetaGrouperPlugin from "../main";
 import { VaultIndexer } from "../indexer/vault-indexer";
 import { TreeBuilder } from "../tree/tree-builder";
 import { TreeComponent } from "../components/tree-component";
@@ -21,10 +21,10 @@ export interface CodeblockConfig {
 }
 
 /**
- * TagTreeCodeblockProcessor - Handles rendering of tagtree codeblocks
+ * MetaGrouperCodeblockProcessor - Handles rendering of metagrouper codeblocks
  *
  * Supports the following syntax:
- * ```tagtree
+ * ```metagrouper
  * view: "Projects by Status"
  * interactive: true
  * format: details
@@ -33,11 +33,11 @@ export interface CodeblockConfig {
  * displayMode: tree
  * ```
  */
-export class TagTreeCodeblockProcessor {
+export class MetaGrouperCodeblockProcessor {
   private app: App;
-  private plugin: TagTreePlugin;
+  private plugin: MetaGrouperPlugin;
 
-  constructor(app: App, plugin: TagTreePlugin) {
+  constructor(app: App, plugin: MetaGrouperPlugin) {
     this.app = app;
     this.plugin = plugin;
   }
@@ -167,7 +167,7 @@ export class TagTreeCodeblockProcessor {
       }
 
       // Create a container for the tree
-      const treeContainer = el.createDiv("tag-tree-codeblock");
+      const treeContainer = el.createDiv("metagrouper-codeblock");
 
       // Add data attributes for styling
       treeContainer.dataset.interactive = String(config.interactive);
@@ -190,7 +190,7 @@ export class TagTreeCodeblockProcessor {
         );
       }
     } catch (error) {
-      console.error("[TagTree] Error rendering codeblock:", error);
+      console.error("[MetaGrouper] Error rendering codeblock:", error);
       const message = error instanceof Error ? error.message : String(error);
       this.renderError(el, `Error rendering tree: ${message}`);
     }
@@ -231,7 +231,7 @@ export class TagTreeCodeblockProcessor {
     hierarchyConfig: HierarchyConfig
   ): Promise<void> {
     // Create a simple nested list representation
-    const ul = container.createEl("ul", { cls: "tag-tree-list" });
+    const ul = container.createEl("ul", { cls: "metagrouper-list" });
     this.renderNodeAsList(tree, ul, config);
   }
 
@@ -260,7 +260,7 @@ export class TagTreeCodeblockProcessor {
     const li = parent.createEl("li");
 
     // Create node content
-    const span = li.createEl("span", { cls: "tag-tree-node-name" });
+    const span = li.createEl("span", { cls: "metagrouper-node-name" });
 
     if (node.type === "file" && node.files[0]) {
       // Render file as a link
@@ -282,7 +282,7 @@ export class TagTreeCodeblockProcessor {
       span.textContent = node.name;
       if (node.fileCount > 0) {
         span.createEl("span", {
-          cls: "tag-tree-count",
+          cls: "metagrouper-count",
           text: ` (${node.fileCount})`,
         });
       }
@@ -319,15 +319,15 @@ export class TagTreeCodeblockProcessor {
     });
 
     // Add non-interactive class for CSS styling
-    container.addClass("tag-tree-non-interactive");
+    container.addClass("metagrouper-non-interactive");
   }
 
   /**
    * Render an error message
    */
   private renderError(container: HTMLElement, message: string): void {
-    const errorDiv = container.createDiv("tag-tree-codeblock-error");
-    errorDiv.createEl("strong", { text: "Tag Tree Error: " });
+    const errorDiv = container.createDiv("metagrouper-codeblock-error");
+    errorDiv.createEl("strong", { text: "MetaGrouper Error: " });
     errorDiv.createEl("span", { text: message });
   }
 }

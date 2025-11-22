@@ -88,19 +88,19 @@ export class TreeToolbar {
     container.empty();
 
     // Create toolbar header container (no longer collapsible)
-    const headerContainer = container.createDiv({ cls: "tag-tree-toolbar-header" });
+    const headerContainer = container.createDiv({ cls: "metagrouper-toolbar-header" });
 
     // First line: View name and switcher
-    const headerFirstLine = headerContainer.createDiv({ cls: "tag-tree-toolbar-header-first-line" });
+    const headerFirstLine = headerContainer.createDiv({ cls: "metagrouper-toolbar-header-first-line" });
 
     // View name (no icon)
-    const viewTitle = headerFirstLine.createDiv({ cls: "tag-tree-toolbar-title" });
-    viewTitle.createSpan({ text: this.currentViewName, cls: "tag-tree-toolbar-view-name" });
+    const viewTitle = headerFirstLine.createDiv({ cls: "metagrouper-toolbar-title" });
+    viewTitle.createSpan({ text: this.currentViewName, cls: "metagrouper-toolbar-view-name" });
 
     // View switcher icon immediately to the right of view name (if multiple views exist)
     if (this.savedViews.length > 1 && this.callbacks.onViewChange) {
       const viewSwitcherIcon = viewTitle.createEl("button", {
-        cls: "clickable-icon tag-tree-view-switcher-icon",
+        cls: "clickable-icon metagrouper-view-switcher-icon",
         attr: {
           "aria-label": "Switch view",
         },
@@ -114,12 +114,12 @@ export class TreeToolbar {
     }
 
     // Second line: Header controls group (reordered)
-    const headerSecondLine = headerContainer.createDiv({ cls: "tag-tree-toolbar-header-second-line" });
-    const headerControlsGroup = headerSecondLine.createDiv({ cls: "tag-tree-header-controls" });
+    const headerSecondLine = headerContainer.createDiv({ cls: "metagrouper-toolbar-header-second-line" });
+    const headerControlsGroup = headerSecondLine.createDiv({ cls: "metagrouper-header-controls" });
 
     // Display mode toggle in header (first)
     const displayModeToggle = headerControlsGroup.createEl("button", {
-      cls: "clickable-icon tag-tree-header-control",
+      cls: "clickable-icon metagrouper-header-control",
       attr: {
         "aria-label": `Switch to ${this.currentDisplayMode === "tree" ? "flattened" : "tree"} view`,
       },
@@ -138,7 +138,7 @@ export class TreeToolbar {
 
     // Show files toggle in header (second)
     const showFilesToggle = headerControlsGroup.createEl("button", {
-      cls: `clickable-icon tag-tree-header-control`,
+      cls: `clickable-icon metagrouper-header-control`,
       attr: {
         "aria-label": "Toggle file visibility",
         "role": "switch",
@@ -158,7 +158,7 @@ export class TreeToolbar {
 
     // Expand all nodes (third)
     const expandBtn = headerControlsGroup.createEl("button", {
-      cls: "clickable-icon tag-tree-header-control",
+      cls: "clickable-icon metagrouper-header-control",
       attr: {
         "aria-label": "Expand all nodes",
       },
@@ -172,7 +172,7 @@ export class TreeToolbar {
 
     // Collapse all nodes (fourth)
     const collapseBtn = headerControlsGroup.createEl("button", {
-      cls: "clickable-icon tag-tree-header-control",
+      cls: "clickable-icon metagrouper-header-control",
       attr: {
         "aria-label": "Collapse all nodes",
       },
@@ -186,7 +186,7 @@ export class TreeToolbar {
 
     // Sort files control in header (fifth)
     const sortButton = headerControlsGroup.createEl("button", {
-      cls: "clickable-icon tag-tree-header-control",
+      cls: "clickable-icon metagrouper-header-control",
       attr: {
         "aria-label": "Sort files",
       },
@@ -201,7 +201,7 @@ export class TreeToolbar {
     // Refresh/rebuild tree button in header (sixth)
     if (this.callbacks.onRefreshTree) {
       const refreshBtn = headerControlsGroup.createEl("button", {
-        cls: "clickable-icon tag-tree-header-control",
+        cls: "clickable-icon metagrouper-header-control",
         attr: {
           "aria-label": "Rebuild tree with current filters",
         },
@@ -219,7 +219,7 @@ export class TreeToolbar {
     // Settings button in header (last)
     if (this.callbacks.onOpenViewSettings) {
       const settingsBtn = headerControlsGroup.createEl("button", {
-        cls: "clickable-icon tag-tree-header-control",
+        cls: "clickable-icon metagrouper-header-control",
         attr: {
           "aria-label": "Open view settings",
         },
@@ -319,7 +319,7 @@ export class TreeToolbar {
    * Render interactive filter controls (for eye-selected filters)
    */
   private renderInteractiveFilters(container: HTMLElement, interactiveFilters: any[]): void {
-    const section = container.createDiv({ cls: "tag-tree-quick-filters" });
+    const section = container.createDiv({ cls: "metagrouper-quick-filters" });
     section.style.padding = "var(--size-4-2) var(--size-4-3)";
     section.style.backgroundColor = "var(--background-secondary)";
     section.style.borderRadius = "var(--radius-s)";
@@ -343,7 +343,7 @@ export class TreeToolbar {
     // Create set of quick filter labels for easy lookup
     const quickFilterLabels = new Set(interactiveFilters.map(f => f.label));
 
-    const expressionContainer = container.createDiv({ cls: "tag-tree-filter-expression" });
+    const expressionContainer = container.createDiv({ cls: "metagrouper-filter-expression" });
     expressionContainer.style.marginBottom = "var(--size-2-1)"; // Reduced gap
     expressionContainer.style.fontSize = "var(--font-ui-small)"; // Standard Obsidian font
 
@@ -414,7 +414,7 @@ export class TreeToolbar {
   private renderQuickFilterRow(container: HTMLElement, labeledFilter: any): void {
     const filter = labeledFilter.filter;
 
-    const row = container.createDiv({ cls: "tag-tree-quick-filter-row" });
+    const row = container.createDiv({ cls: "metagrouper-quick-filter-row" });
     row.style.display = "flex";
     row.style.alignItems = "center";
     row.style.gap = "var(--size-4-2)";
@@ -436,7 +436,7 @@ export class TreeToolbar {
     badge.style.textAlign = "center";
 
     // Controls container
-    const controls = row.createDiv({ cls: "tag-tree-filter-controls" });
+    const controls = row.createDiv({ cls: "metagrouper-filter-controls" });
     controls.style.display = "flex";
     controls.style.alignItems = "center";
     controls.style.gap = "var(--size-2-2)";
@@ -566,7 +566,7 @@ export class TreeToolbar {
       opLabel.style.color = "var(--text-muted)";
       opLabel.style.marginRight = "var(--size-2-1)";
 
-      const valueInput = container.createEl("input", { type: "text", cls: "tag-tree-filter-input" });
+      const valueInput = container.createEl("input", { type: "text", cls: "metagrouper-filter-input" });
       valueInput.value = String(filter.value || "");
       valueInput.placeholder = "Value";
       valueInput.style.width = "100px";
@@ -611,7 +611,7 @@ export class TreeToolbar {
         this.onFilterChanged();
       });
 
-    const valueInput = container.createEl("input", { type: "text", cls: "tag-tree-filter-input" });
+    const valueInput = container.createEl("input", { type: "text", cls: "metagrouper-filter-input" });
     valueInput.value = String(filter.value || "");
     valueInput.placeholder = "Size (e.g., 1.5 MB)";
     valueInput.style.width = "120px";
@@ -640,7 +640,7 @@ export class TreeToolbar {
         this.onFilterChanged();
       });
 
-    const valueInput = container.createEl("input", { type: "text", cls: "tag-tree-filter-input" });
+    const valueInput = container.createEl("input", { type: "text", cls: "metagrouper-filter-input" });
     valueInput.value = String(filter.value || "");
     valueInput.placeholder = filter.operator === "older-than-days" || filter.operator === "within-days"
       ? "Days"
@@ -672,7 +672,7 @@ export class TreeToolbar {
         this.onFilterChanged();
       });
 
-    const valueInput = container.createEl("input", { type: "number", cls: "tag-tree-filter-input" });
+    const valueInput = container.createEl("input", { type: "number", cls: "metagrouper-filter-input" });
     valueInput.value = String(filter.value || "0");
     valueInput.style.width = "80px";
     valueInput.addEventListener("change", () => {
@@ -746,7 +746,7 @@ export class TreeToolbar {
     const allFilters = this.currentViewConfig.filters.filters.filter(lf => lf.enabled !== false);
 
     // Show ALL filters (not just eye-selected ones) - no bullets, less indentation, standard font
-    const filtersContainer = container.createEl("div", { cls: "tag-tree-filter-descriptions" });
+    const filtersContainer = container.createEl("div", { cls: "metagrouper-filter-descriptions" });
     filtersContainer.style.marginTop = "var(--size-2-1)"; // Reduced gap
     filtersContainer.style.fontSize = "var(--font-ui-medium)"; // Larger font for visibility
     filtersContainer.style.fontWeight = "normal"; // Normal font weight
@@ -870,7 +870,7 @@ export class TreeToolbar {
    * Render toolbar filter controls (simplified for now)
    */
   private renderToolbarFilterControls(row: HTMLElement): void {
-    const group = row.createDiv({ cls: "tag-tree-toolbar-group" });
+    const group = row.createDiv({ cls: "metagrouper-toolbar-group" });
 
     // Enable/disable toolbar filters toggle
     const label = group.createSpan({ text: "Toolbar filters: " });
@@ -1022,7 +1022,7 @@ export class TreeToolbar {
     // Update file count displays without re-rendering the entire toolbar
     if (this.container) {
       // Update count in files count display
-      const filesCountEl = this.container.querySelector('.tag-tree-files-count') as HTMLElement;
+      const filesCountEl = this.container.querySelector('.metagrouper-files-count') as HTMLElement;
       if (filesCountEl) {
         const hasFilters = this.currentViewConfig?.filters && this.currentViewConfig.filters.filters?.length > 0;
         filesCountEl.textContent = hasFilters
@@ -1031,7 +1031,7 @@ export class TreeToolbar {
       }
 
       // Update count in filters title
-      const filterCountSpans = this.container.querySelectorAll('.tag-tree-filters-title span:last-child');
+      const filterCountSpans = this.container.querySelectorAll('.metagrouper-filters-title span:last-child');
       filterCountSpans.forEach(span => {
         span.textContent = `(${this.fileCount} files)`;
       });
@@ -1066,7 +1066,7 @@ export class TreeToolbar {
 
     // Update the toggle button icon directly
     if (this.container) {
-      const displayModeBtn = this.container.querySelector('.tag-tree-display-mode-toggle') as HTMLElement;
+      const displayModeBtn = this.container.querySelector('.metagrouper-display-mode-toggle') as HTMLElement;
 
       if (displayModeBtn) {
         // Clear existing icon

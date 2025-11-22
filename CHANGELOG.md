@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Tag Tree View will be documented in this file.
+All notable changes to MetaGrouper will be documented in this file.
 
 ## [0.0.1] - 2025-11-18
 

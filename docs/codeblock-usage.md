@@ -1,15 +1,15 @@
-# Tag Tree Codeblock Usage Guide
+# MetaGrouper Codeblock Usage Guide
 
 ## Overview
 
-The Tag Tree plugin supports embedding tree views directly inside your notes using markdown codeblocks. This allows you to create custom, context-specific tag hierarchies that update automatically as your vault changes.
+The MetaGrouper plugin supports embedding tree views directly inside your notes using markdown codeblocks. This allows you to create custom, context-specific hierarchies that update automatically as your vault changes.
 
 ## Basic Syntax
 
-To embed a tag tree in your note, use a `tagtree` codeblock:
+To embed a tree in your note, use a `metagrouper` codeblock:
 
 ````markdown
-```tagtree
+```metagrouper
 view: "View Name"
 ```
 ````
@@ -47,7 +47,7 @@ The codeblock supports several configuration options:
 ### Example 1: Basic Interactive Tree
 
 ````markdown
-```tagtree
+```metagrouper
 view: "All Tags"
 ```
 ````
@@ -57,7 +57,7 @@ This renders the "All Tags" view with default settings (interactive, details for
 ### Example 2: Non-Interactive Static Tree
 
 ````markdown
-```tagtree
+```metagrouper
 view: "Projects by Status"
 interactive: false
 ```
@@ -68,7 +68,7 @@ This renders a non-interactive tree - useful for creating static snapshots in no
 ### Example 3: Expanded Tree with No Files
 
 ````markdown
-```tagtree
+```metagrouper
 view: "Research Topics"
 expanded: 3
 showFiles: false
@@ -80,7 +80,7 @@ This renders the tree expanded to 3 levels, showing only groups (no individual f
 ### Example 4: Simple List Format
 
 ````markdown
-```tagtree
+```metagrouper
 view: "My Projects"
 format: list
 expanded: 2
@@ -92,7 +92,7 @@ This renders a simple nested list format, expanded to 2 levels.
 ### Example 5: Complete Configuration
 
 ````markdown
-```tagtree
+```metagrouper
 view: "Projects by Status"
 interactive: true
 format: details
@@ -113,13 +113,13 @@ Create a project overview page with multiple embedded trees:
 # Project Dashboard
 
 ## Active Projects
-```tagtree
+```metagrouper
 view: "Projects by Status"
 expanded: 1
 ```
 
 ## By Priority
-```tagtree
+```metagrouper
 view: "Projects by Priority"
 expanded: 2
 showFiles: false
@@ -133,7 +133,7 @@ Create topic-specific pages with filtered views:
 ````markdown
 # Research: Machine Learning
 
-```tagtree
+```metagrouper
 view: "ML Research Topics"
 expanded: 3
 ```
@@ -148,7 +148,7 @@ Include non-interactive trees in documentation:
 
 Our vault uses the following tag hierarchy:
 
-```tagtree
+```metagrouper
 view: "All Tags"
 interactive: false
 format: list
@@ -165,7 +165,7 @@ Embed relevant project trees in meeting notes:
 
 ## Projects to Discuss
 
-```tagtree
+```metagrouper
 view: "Active Projects"
 expanded: 1
 showFiles: true
@@ -197,7 +197,7 @@ The embedded trees inherit the plugin's CSS styling and support both light and d
 1. **Create a "Views Index" Note**: Create a note that documents all your saved views and shows examples of each one
 2. **Use Comments**: Add comments in your codeblocks for clarity:
    ````markdown
-   ```tagtree
+   ```metagrouper
    # Show all active projects with files
    view: "Active Projects"
    showFiles: true

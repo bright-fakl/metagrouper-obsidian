@@ -129,14 +129,14 @@ export class VaultIndexer extends Events {
       const cache = this.app.metadataCache.getFileCache(file);
 
       if (!cache) {
-        console.warn(`[TagTree] No cache for file: ${file.path}`);
+        console.warn(`[MetaGrouper] No cache for file: ${file.path}`);
         return;
       }
 
       this.indexTags(file, cache);
       this.indexProperties(file, cache);
     } catch (error) {
-      console.error(`[TagTree] Error indexing file ${file.path}:`, error);
+      console.error(`[MetaGrouper] Error indexing file ${file.path}:`, error);
     }
   }
 
@@ -183,7 +183,7 @@ export class VaultIndexer extends Events {
 
       this.fileToTags.set(file, tags);
     } catch (error) {
-      console.error(`[TagTree] Error indexing tags for ${file.path}:`, error);
+      console.error(`[MetaGrouper] Error indexing tags for ${file.path}:`, error);
     }
   }
 
@@ -223,7 +223,7 @@ export class VaultIndexer extends Events {
       this.fileToProperties.set(file, props);
     } catch (error) {
       console.error(
-        `[TagTree] Error indexing properties for ${file.path}:`,
+        `[MetaGrouper] Error indexing properties for ${file.path}:`,
         error
       );
     }

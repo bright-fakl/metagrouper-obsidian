@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting, Modal, Notice, setIcon, MarkdownRenderer } from "obsidian";
-import type TagTreePlugin from "../main";
+import type MetaGrouperPlugin from "../main";
 import {
   HierarchyConfig,
   HierarchyLevel,
@@ -45,20 +45,20 @@ import { ExpressionParser, validateFilterLabels } from "../filters/expression-pa
  * Modal to display the changelog
  */
 class ChangelogModal extends Modal {
-  private plugin: TagTreePlugin;
+  private plugin: MetaGrouperPlugin;
 
-  constructor(app: App, plugin: TagTreePlugin) {
+  constructor(app: App, plugin: MetaGrouperPlugin) {
     super(app);
     this.plugin = plugin;
   }
 
   async onOpen() {
     const { contentEl, titleEl } = this;
-    titleEl.setText(`What's new in Tag Tree View v${this.plugin.manifest.version}`);
+    titleEl.setText(`What's new in MetaGrouper v${this.plugin.manifest.version}`);
 
     // Create scrollable content container
     const scrollContainer = contentEl.createDiv({
-      cls: "tag-tree-changelog-content"
+      cls: "metagrouper-changelog-content"
     });
     scrollContainer.style.maxHeight = "60vh";
     scrollContainer.style.overflowY = "auto";
@@ -89,14 +89,14 @@ class ChangelogModal extends Modal {
 
     // Support section
     const supportSection = contentEl.createDiv({
-      cls: "tag-tree-changelog-footer"
+      cls: "metagrouper-changelog-footer"
     });
     supportSection.style.borderTop = "1px solid var(--background-modifier-border)";
     supportSection.style.paddingTop = "var(--size-4-3)";
     supportSection.style.marginTop = "var(--size-4-3)";
 
     supportSection.createEl("p", {
-      text: "If you find Tag Tree View helpful, please consider supporting its development."
+      text: "If you find MetaGrouper helpful, please consider supporting its development."
     });
 
     // Buttons container
@@ -141,10 +141,10 @@ class ChangelogModal extends Modal {
  * Settings tab for Tag Tree plugin
  * Allows users to create, edit, and manage saved views
  */
-export class TagTreeSettingsTab extends PluginSettingTab {
-  plugin: TagTreePlugin;
+export class MetaGrouperSettingsTab extends PluginSettingTab {
+  plugin: MetaGrouperPlugin;
 
-  constructor(app: App, plugin: TagTreePlugin) {
+  constructor(app: App, plugin: MetaGrouperPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -156,7 +156,7 @@ export class TagTreeSettingsTab extends PluginSettingTab {
     // Main header
     new Setting(containerEl)
       .setHeading()
-      .setName("Tag Tree View Settings");
+      .setName("MetaGrouper Settings");
 
     // What's new section
     this.renderWhatsNew(containerEl);
@@ -179,7 +179,7 @@ export class TagTreeSettingsTab extends PluginSettingTab {
    */
   private renderWhatsNew(containerEl: HTMLElement): void {
     new Setting(containerEl)
-      .setName(`What's new in Tag Tree View v${this.plugin.manifest.version}`)
+      .setName(`What's new in MetaGrouper v${this.plugin.manifest.version}`)
       .setDesc("See the latest features and improvements")
       .addButton((button) =>
         button
@@ -196,12 +196,12 @@ export class TagTreeSettingsTab extends PluginSettingTab {
   private renderDocumentation(containerEl: HTMLElement): void {
     new Setting(containerEl)
       .setName("Documentation")
-      .setDesc("Learn more about using Tag Tree View")
+      .setDesc("Learn more about using MetaGrouper")
       .addButton((button) =>
         button
           .setButtonText("View documentation")
           .onClick(() => {
-            window.open("https://fkloosterman.github.io/tag-tree-obsidian/", "_blank");
+            window.open("https://fkloosterman.github.io/metagrouper-obsidian/", "_blank");
           })
       );
   }
@@ -212,11 +212,11 @@ export class TagTreeSettingsTab extends PluginSettingTab {
   private renderSupportDevelopment(containerEl: HTMLElement): void {
     const setting = new Setting(containerEl)
       .setName("Support development")
-      .setDesc("If you find Tag Tree View helpful, please consider supporting its development.");
+      .setDesc("If you find MetaGrouper helpful, please consider supporting its development.");
 
     // Create custom button container in the control section
     const buttonContainer = setting.controlEl.createDiv({
-      cls: "tag-tree-support-buttons"
+      cls: "metagrouper-support-buttons"
     });
     buttonContainer.style.display = "flex";
     buttonContainer.style.gap = "var(--size-4-2)";
@@ -452,7 +452,7 @@ export class TagTreeSettingsTab extends PluginSettingTab {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "tag-tree-views.json";
+    a.download = "metagrouper-views.json";
     a.click();
     URL.revokeObjectURL(url);
     new Notice("Views exported successfully");
@@ -520,7 +520,7 @@ export class TagTreeSettingsTab extends PluginSettingTab {
  * Modal for editing/creating a view
  */
 class ViewEditorModal extends Modal {
-  private plugin: TagTreePlugin;
+  private plugin: MetaGrouperPlugin;
   private view: HierarchyConfig | null;
   private onSave: (view: HierarchyConfig) => void;
 
@@ -548,7 +548,7 @@ class ViewEditorModal extends Modal {
 
   constructor(
     app: App,
-    plugin: TagTreePlugin,
+    plugin: MetaGrouperPlugin,
     view: HierarchyConfig | null,
     effectiveDisplayMode: "tree" | "flat" | null,
     onSave: (view: HierarchyConfig) => void
@@ -616,7 +616,7 @@ class ViewEditorModal extends Modal {
     containerEl.empty();
 
     // Fixed header with view name
-    const header = containerEl.createDiv("tag-tree-modal-header");
+    const header = containerEl.createDiv("metagrouper-modal-header");
     new Setting(header)
       .setName("View name")
       .setDesc("Unique name for this view")
@@ -630,7 +630,7 @@ class ViewEditorModal extends Modal {
       );
 
     // Create scrollable content wrapper
-    const contentWrapper = containerEl.createDiv("tag-tree-modal-content");
+    const contentWrapper = containerEl.createDiv("metagrouper-modal-content");
 
     // Filter Options Section (collapsible)
     const filterSection = this.createCollapsibleSection(
@@ -805,7 +805,7 @@ class ViewEditorModal extends Modal {
     this.renderLevels(levelsContainer);
 
     // Fixed footer with Save/Cancel buttons
-    const footer = containerEl.createDiv("tag-tree-modal-footer");
+    const footer = containerEl.createDiv("metagrouper-modal-footer");
 
     new Setting(footer)
       .addButton((button) =>
@@ -834,7 +834,7 @@ class ViewEditorModal extends Modal {
     stateKey: string,
     defaultOpen: boolean = false
   ): HTMLElement {
-    const details = parent.createEl("details", { cls: "tag-tree-collapsible-section" });
+    const details = parent.createEl("details", { cls: "metagrouper-collapsible-section" });
 
     // Use stored state if available, otherwise use default
     const isOpen = this.collapseState[stateKey as keyof typeof this.collapseState] ?? defaultOpen;
@@ -842,7 +842,7 @@ class ViewEditorModal extends Modal {
       details.setAttribute("open", "");
     }
 
-    const summary = details.createEl("summary", { cls: "tag-tree-section-header" });
+    const summary = details.createEl("summary", { cls: "metagrouper-section-header" });
     summary.setText(title);
 
     // Track state changes
@@ -850,7 +850,7 @@ class ViewEditorModal extends Modal {
       (this.collapseState as any)[stateKey] = details.hasAttribute("open");
     });
 
-    const content = details.createDiv("tag-tree-section-content");
+    const content = details.createDiv("metagrouper-section-content");
     return content;
   }
 
@@ -882,7 +882,7 @@ class ViewEditorModal extends Modal {
     onMoveDown: () => void,
     onDelete: () => void
   ): HTMLElement {
-    const details = parent.createEl("details", { cls: "tag-tree-collapsible-section" });
+    const details = parent.createEl("details", { cls: "metagrouper-collapsible-section" });
 
     // Use stored state if available, otherwise default to collapsed
     const isOpen = this.collapseState.levelItems.get(index) ?? false;
@@ -890,14 +890,14 @@ class ViewEditorModal extends Modal {
       details.setAttribute("open", "");
     }
 
-    const summary = details.createEl("summary", { cls: "tag-tree-section-header tag-tree-level-header" });
+    const summary = details.createEl("summary", { cls: "metagrouper-section-header metagrouper-level-header" });
 
     // Add title text
-    const titleSpan = summary.createSpan({ cls: "tag-tree-level-title" });
+    const titleSpan = summary.createSpan({ cls: "metagrouper-level-title" });
     titleSpan.setText(title);
 
     // Add controls container
-    const controls = summary.createDiv({ cls: "tag-tree-level-controls" });
+    const controls = summary.createDiv({ cls: "metagrouper-level-controls" });
 
     // Move up button
     const moveUpBtn = controls.createEl("button", {
@@ -969,7 +969,7 @@ class ViewEditorModal extends Modal {
       this.collapseState.levelItems.set(index, details.hasAttribute("open"));
     });
 
-    const content = details.createDiv("tag-tree-section-content");
+    const content = details.createDiv("metagrouper-section-content");
     return content;
   }
 
@@ -1214,10 +1214,10 @@ class ViewEditorModal extends Modal {
       };
     }
 
-    const filtersContainer = container.createDiv({ cls: "tag-tree-filters-container" });
+    const filtersContainer = container.createDiv({ cls: "metagrouper-filters-container" });
 
     // Individual filters list
-    const filtersListContainer = filtersContainer.createDiv({ cls: "tag-tree-labeled-filters" });
+    const filtersListContainer = filtersContainer.createDiv({ cls: "metagrouper-labeled-filters" });
     this.renderLabeledFilters(filtersListContainer);
 
     // Add filter button
@@ -1251,7 +1251,7 @@ class ViewEditorModal extends Modal {
     });
 
     // Expression validation feedback
-    const validationContainer = filtersContainer.createDiv({ cls: "tag-tree-expression-validation" });
+    const validationContainer = filtersContainer.createDiv({ cls: "metagrouper-expression-validation" });
     this.renderExpressionValidation(validationContainer);
   }
 
@@ -1277,7 +1277,7 @@ class ViewEditorModal extends Modal {
     }).style.marginBottom = "var(--size-4-2)";
 
     this.workingView.filters.filters.forEach((labeledFilter, index) => {
-      const filterContainer = container.createDiv({ cls: "tag-tree-filter-item" });
+      const filterContainer = container.createDiv({ cls: "metagrouper-filter-item" });
       this.renderLabeledFilter(filterContainer, labeledFilter, index);
     });
   }
@@ -1296,7 +1296,7 @@ class ViewEditorModal extends Modal {
     const setting = new Setting(container);
 
     // Label badge
-    const labelBadge = setting.nameEl.createSpan({ cls: "tag-tree-filter-label-badge" });
+    const labelBadge = setting.nameEl.createSpan({ cls: "metagrouper-filter-label-badge" });
     labelBadge.setText(labeledFilter.label);
     labelBadge.style.display = "inline-block";
     labelBadge.style.padding = "2px 8px";
@@ -1421,7 +1421,7 @@ class ViewEditorModal extends Modal {
     // Check for type mismatch between saved filter and actual property
     if (propertyType && filter.valueType && propertyType !== filter.valueType) {
       // Type mismatch detected - show warning
-      const warningEl = setting.descEl.createDiv({ cls: "tag-tree-filter-warning" });
+      const warningEl = setting.descEl.createDiv({ cls: "metagrouper-filter-warning" });
       warningEl.style.color = "var(--text-warning)";
       warningEl.style.marginTop = "var(--size-4-1)";
       warningEl.createEl("strong", { text: "⚠️ Type mismatch: " });
@@ -1454,7 +1454,7 @@ class ViewEditorModal extends Modal {
     // Add type selector for unregistered properties
     if (!propertyType && filter.property) {
       // Show message that property doesn't exist
-      const infoEl = setting.descEl.createDiv({ cls: "tag-tree-filter-info" });
+      const infoEl = setting.descEl.createDiv({ cls: "metagrouper-filter-info" });
       infoEl.style.color = "var(--text-muted)";
       infoEl.style.marginTop = "var(--size-4-1)";
       infoEl.style.fontSize = "0.9em";
@@ -1573,7 +1573,7 @@ class ViewEditorModal extends Modal {
 
     const metadataTypeManager = (this.app as any).metadataTypeManager;
     if (!metadataTypeManager) {
-      console.log("TagTree: metadataTypeManager not available");
+      console.log("MetaGrouper: metadataTypeManager not available");
       return null;
     }
 
@@ -1582,21 +1582,21 @@ class ViewEditorModal extends Modal {
 
     if (typeof metadataTypeManager.getPropertyInfo === "function") {
       propertyInfo = metadataTypeManager.getPropertyInfo(propertyName);
-      console.log(`TagTree: getPropertyInfo("${propertyName}") =>`, propertyInfo);
+      console.log(`MetaGrouper: getPropertyInfo("${propertyName}") =>`, propertyInfo);
     } else if (typeof metadataTypeManager.getType === "function") {
       propertyInfo = metadataTypeManager.getType(propertyName);
-      console.log(`TagTree: getType("${propertyName}") =>`, propertyInfo);
+      console.log(`MetaGrouper: getType("${propertyName}") =>`, propertyInfo);
     } else if (metadataTypeManager.properties) {
       propertyInfo = metadataTypeManager.properties[propertyName];
-      console.log(`TagTree: properties["${propertyName}"] =>`, propertyInfo);
+      console.log(`MetaGrouper: properties["${propertyName}"] =>`, propertyInfo);
     } else {
-      console.log("TagTree: metadataTypeManager methods:", Object.keys(metadataTypeManager));
+      console.log("MetaGrouper: metadataTypeManager methods:", Object.keys(metadataTypeManager));
     }
 
     if (propertyInfo) {
       // Try different ways the type might be stored
       const type = propertyInfo.type || propertyInfo;
-      console.log(`TagTree: Detected type for "${propertyName}":`, type);
+      console.log(`MetaGrouper: Detected type for "${propertyName}":`, type);
 
       // If type is a string, return it directly
       if (typeof type === "string") {
@@ -1615,7 +1615,7 @@ class ViewEditorModal extends Modal {
           "tags": "array",
         };
         const mappedType = widgetMap[type.widget] || "string";
-        console.log(`TagTree: Mapped widget "${type.widget}" to type "${mappedType}"`);
+        console.log(`MetaGrouper: Mapped widget "${type.widget}" to type "${mappedType}"`);
         return mappedType;
       }
     }
@@ -1753,7 +1753,7 @@ class ViewEditorModal extends Modal {
    */
   private validateExpression(): void {
     // Re-render validation container
-    const container = this.contentEl.querySelector(".tag-tree-expression-validation") as HTMLElement;
+    const container = this.contentEl.querySelector(".metagrouper-expression-validation") as HTMLElement;
     if (container) {
       this.renderExpressionValidation(container);
     }
@@ -1777,7 +1777,7 @@ class ViewEditorModal extends Modal {
       // No expression - will default to AND all
       container.createEl("p", {
         text: `✓ No expression provided - will default to: ${labels.join(' & ')}`,
-        cls: "tag-tree-expression-valid",
+        cls: "metagrouper-expression-valid",
       }).style.color = "var(--text-muted)";
       return;
     }
@@ -1792,7 +1792,7 @@ class ViewEditorModal extends Modal {
 
     if (parseResult.errors.length > 0) {
       // Parse errors
-      const errorEl = container.createEl("div", { cls: "tag-tree-expression-error" });
+      const errorEl = container.createEl("div", { cls: "metagrouper-expression-error" });
       errorEl.style.color = "var(--text-error)";
       errorEl.createEl("strong", { text: "⚠ Expression Error:" });
       const errorList = errorEl.createEl("ul");
@@ -1806,7 +1806,7 @@ class ViewEditorModal extends Modal {
     // Validate labels
     const labelErrors = validateFilterLabels(parseResult.ast, labels);
     if (labelErrors.length > 0) {
-      const errorEl = container.createEl("div", { cls: "tag-tree-expression-error" });
+      const errorEl = container.createEl("div", { cls: "metagrouper-expression-error" });
       errorEl.style.color = "var(--text-error)";
       errorEl.createEl("strong", { text: "⚠ Label Error:" });
       const errorList = errorEl.createEl("ul");
@@ -1820,7 +1820,7 @@ class ViewEditorModal extends Modal {
     // Valid expression
     container.createEl("p", {
       text: "✓ Expression is valid",
-      cls: "tag-tree-expression-valid",
+      cls: "metagrouper-expression-valid",
     }).style.color = "var(--text-success)";
   }
 
@@ -1991,7 +1991,7 @@ class FilterTypeSelectModal extends Modal {
       "bookmark",
     ];
 
-    const buttonsContainer = contentEl.createDiv({ cls: "tag-tree-filter-type-buttons" });
+    const buttonsContainer = contentEl.createDiv({ cls: "metagrouper-filter-type-buttons" });
     buttonsContainer.style.display = "grid";
     buttonsContainer.style.gridTemplateColumns = "repeat(auto-fill, minmax(200px, 1fr))";
     buttonsContainer.style.gap = "var(--size-4-2)";
@@ -2000,7 +2000,7 @@ class FilterTypeSelectModal extends Modal {
     filterTypes.forEach(filterType => {
       const metadata = FILTER_TYPE_METADATA[filterType];
 
-      const button = buttonsContainer.createEl("button", { cls: "tag-tree-filter-type-button" });
+      const button = buttonsContainer.createEl("button", { cls: "metagrouper-filter-type-button" });
       button.style.padding = "var(--size-4-3)";
       button.style.textAlign = "left";
       button.style.border = "1px solid var(--background-modifier-border)";

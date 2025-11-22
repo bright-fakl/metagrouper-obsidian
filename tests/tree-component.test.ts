@@ -181,7 +181,7 @@ describe("TreeComponent", () => {
       treeComponent.render(mockTree, container);
 
       // Check that tree container is created
-      const treeContainer = container.querySelector(".tag-tree-container");
+      const treeContainer = container.querySelector(".metagrouper-container");
       expect(treeContainer).toBeTruthy();
 
       // Check that root node is hidden (children rendered directly)

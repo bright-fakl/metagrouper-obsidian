@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-tag-tree-view",
+  "name": "obsidian-metagrouper",
   "version": "0.0.1",
-  "description": "Obsidian plugin for visualizing nested tags.",
+  "description": "Obsidian plugin for organizing notes by grouping on tags and frontmatter properties.",
   "main": "main.js",
   "type": "module",
   "scripts": {

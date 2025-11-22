@@ -65,7 +65,7 @@ export class TreeComponent {
     container.empty();
 
     // Create main tree container
-    const treeContainer = container.createDiv("tag-tree-container");
+    const treeContainer = container.createDiv("metagrouper-container");
 
     // Set up keyboard navigation
     this.setupKeyboardNavigation(treeContainer);

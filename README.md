@@ -80,7 +80,7 @@ expanded: 2
 ### For Development
 ```bash
 # Clone the repository
-git clone https://github.com/fkloosterman/metagrouper-obsidian.git
+git clone https://github.com/bright-fakl/metagrouper-obsidian.git
 cd metagrouper-obsidian
 
 # Install dependencies
@@ -267,7 +267,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - **Issues**: Report bugs or request features on [GitHub Issues](../../issues)
 - **Discussions**: Ask questions on [GitHub Discussions](../../discussions)
-- **Author**: [Fabian Kloosterman](https://github.com/fkloosterman)
+- **Author**: [Fabian Kloosterman](https://github.com/bright-fakl)
 
 ## 🗺️ Roadmap
 

@@ -201,7 +201,7 @@ export class MetaGrouperSettingsTab extends PluginSettingTab {
         button
           .setButtonText("View documentation")
           .onClick(() => {
-            window.open("https://fkloosterman.github.io/metagrouper-obsidian/", "_blank");
+            window.open("https://bright-fakl.github.io/metagrouper-obsidian/", "_blank");
           })
       );
   }
@@ -240,7 +240,7 @@ export class MetaGrouperSettingsTab extends PluginSettingTab {
 
     sponsorButton.createSpan({ text: "Sponsor" });
     sponsorButton.addEventListener("click", () => {
-      window.open("https://github.com/sponsors/fkloosterman", "_blank");
+      window.open("https://github.com/sponsors/bright-fakl", "_blank");
     });
 
     // Buy me a coffee button with ko-fi logo and ko-fi blue background

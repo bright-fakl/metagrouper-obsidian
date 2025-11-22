@@ -80,8 +80,8 @@ expanded: 2
 ### For Development
 ```bash
 # Clone the repository
-git clone https://github.com/fkloosterman/tag-tree-obsidian.git
-cd tag-tree-obsidian
+git clone https://github.com/fkloosterman/metagrouper-obsidian.git
+cd metagrouper-obsidian
 
 # Install dependencies
 npm install

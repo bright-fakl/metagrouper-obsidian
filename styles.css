@@ -5,7 +5,7 @@
    ======================================== */
 
 /* Main view content container */
-.tag-tree-view-content {
+.metagrouper-view-content {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -13,17 +13,17 @@
 }
 
 /* Navigation header (toolbar area) */
-.tag-tree-nav-header {
+.metagrouper-nav-header {
   flex-shrink: 0;
   border-bottom: 1px solid var(--background-modifier-border);
 }
 
 /* Collapsible toolbar container */
-.tag-tree-toolbar {
+.metagrouper-toolbar {
   background-color: var(--background-primary);
 }
 
-.tag-tree-toolbar-summary {
+.metagrouper-toolbar-summary {
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -32,11 +32,11 @@
   position: relative;
 }
 
-.tag-tree-toolbar-summary:hover {
+.metagrouper-toolbar-summary:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-toolbar-summary::before {
+.metagrouper-toolbar-summary::before {
   content: "";
   display: inline-block;
   width: 0;
@@ -51,25 +51,25 @@
   transition: transform 0.1s ease;
 }
 
-.tag-tree-toolbar[open] > .tag-tree-toolbar-summary::before {
+.metagrouper-toolbar[open] > .metagrouper-toolbar-summary::before {
   transform: rotate(90deg);
 }
 
-.tag-tree-toolbar-header {
+.metagrouper-toolbar-header {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   padding: var(--size-4-2) var(--size-4-3);
 }
 
-.tag-tree-toolbar-header-first-line {
+.metagrouper-toolbar-header-first-line {
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: var(--size-2-1);
 }
 
-.tag-tree-toolbar-title {
+.metagrouper-toolbar-title {
   display: flex;
   align-items: center;
   gap: var(--size-2-2);
@@ -77,58 +77,58 @@
   font-weight: var(--font-semibold);
 }
 
-.tag-tree-toolbar-header-second-line {
+.metagrouper-toolbar-header-second-line {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.tag-tree-toolbar-title svg {
+.metagrouper-toolbar-title svg {
   width: var(--icon-size);
   height: var(--icon-size);
   color: var(--icon-color);
 }
 
-.tag-tree-toolbar-view-name {
+.metagrouper-toolbar-view-name {
   color: var(--text-normal);
 }
 
-.tag-tree-toolbar-view-switcher {
+.metagrouper-toolbar-view-switcher {
   margin-left: auto;
 }
 
 /* Header controls group */
-.tag-tree-header-controls {
+.metagrouper-header-controls {
   display: flex;
   align-items: center;
   gap: var(--size-2-1);
 }
 
 /* Header control buttons */
-.tag-tree-header-control {
+.metagrouper-header-control {
   padding: var(--size-2-1);
   border-radius: var(--radius-s);
   transition: background-color 0.1s ease;
 }
 
-.tag-tree-header-control:hover {
+.metagrouper-header-control:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-header-control:active {
+.metagrouper-header-control:active {
   background-color: var(--background-modifier-active-hover);
 }
 
-.tag-tree-header-control.is-active {
+.metagrouper-header-control.is-active {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-header-control.is-active.tag-tree-file-visibility-toggle {
+.metagrouper-header-control.is-active.metagrouper-file-visibility-toggle {
   color: var(--interactive-accent);
 }
 
 /* Header dropdown for sort control */
-.tag-tree-header-dropdown {
+.metagrouper-header-dropdown {
   background-color: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
@@ -140,40 +140,40 @@
   cursor: pointer;
 }
 
-.tag-tree-header-dropdown:focus {
+.metagrouper-header-dropdown:focus {
   outline: 2px solid var(--background-modifier-border-focus);
   outline-offset: -2px;
 }
 
-.tag-tree-header-dropdown:hover {
+.metagrouper-header-dropdown:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-toolbar-view-switcher .dropdown {
+.metagrouper-toolbar-view-switcher .dropdown {
   margin: 0;
 }
 
-.tag-tree-toolbar-content {
+.metagrouper-toolbar-content {
   padding: var(--size-4-2) var(--size-4-3);
   display: flex;
   flex-direction: column;
   gap: var(--size-4-3);
 }
 
-.tag-tree-toolbar-row {
+.metagrouper-toolbar-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--size-4-3);
 }
 
-.tag-tree-toolbar-group {
+.metagrouper-toolbar-group {
   display: flex;
   align-items: center;
   gap: var(--size-2-2);
 }
 
-.tag-tree-toolbar-label {
+.metagrouper-toolbar-label {
   display: flex;
   align-items: center;
   gap: var(--size-2-1);
@@ -182,26 +182,26 @@
   white-space: nowrap;
 }
 
-.tag-tree-toolbar-icon {
+.metagrouper-toolbar-icon {
   display: flex;
   align-items: center;
 }
 
-.tag-tree-toolbar-icon svg {
+.metagrouper-toolbar-icon svg {
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
 }
 
-.tag-tree-toolbar-buttons {
+.metagrouper-toolbar-buttons {
   display: flex;
   gap: var(--size-2-1);
 }
 
-.tag-tree-toolbar-group button {
+.metagrouper-toolbar-group button {
   flex-shrink: 0;
 }
 
-.tag-tree-toolbar-group .dropdown {
+.metagrouper-toolbar-group .dropdown {
   margin: 0;
 }
 
@@ -220,13 +220,13 @@
 
 /* View Editor Modal - Fixed Header/Footer Layout */
 /* Prevent modal container from scrolling - only content wrapper should scroll */
-.modal:has(.tag-tree-modal-header) .modal-content {
+.modal:has(.metagrouper-modal-header) .modal-content {
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.tag-tree-modal-header {
+.metagrouper-modal-header {
   position: sticky;
   top: 0;
   left: 0;
@@ -238,13 +238,13 @@
   flex-shrink: 0;
 }
 
-.tag-tree-modal-header .setting-item {
+.metagrouper-modal-header .setting-item {
   border: none;
   padding: 0;
   margin: 0;
 }
 
-.tag-tree-modal-content {
+.metagrouper-modal-content {
   flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
@@ -252,7 +252,7 @@
   min-height: 0; /* Important for flex children to allow scrolling */
 }
 
-.tag-tree-modal-footer {
+.metagrouper-modal-footer {
   position: sticky;
   bottom: 0;
   left: 0;
@@ -264,7 +264,7 @@
   flex-shrink: 0;
 }
 
-.tag-tree-modal-footer .setting-item {
+.metagrouper-modal-footer .setting-item {
   border: none;
   padding: 0;
   margin: 0;
@@ -273,30 +273,30 @@
   gap: var(--size-2-3);
 }
 
-.tag-tree-modal-footer .setting-item-info {
+.metagrouper-modal-footer .setting-item-info {
   display: none;
 }
 
-.tag-tree-modal-footer .setting-item-control {
+.metagrouper-modal-footer .setting-item-control {
   display: flex;
   gap: var(--size-2-3);
   justify-content: flex-end;
 }
 
 /* Support buttons styling */
-.tag-tree-support-buttons button:hover {
+.metagrouper-support-buttons button:hover {
   opacity: 0.9;
 }
 
 /* Collapsible sections */
-.tag-tree-collapsible-section {
+.metagrouper-collapsible-section {
   margin: var(--size-4-4) 0;
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
   background-color: var(--background-primary);
 }
 
-.tag-tree-section-header {
+.metagrouper-section-header {
   padding: var(--size-4-2) var(--size-4-3);
   font-weight: var(--font-semibold);
   font-size: var(--font-ui-medium);
@@ -309,11 +309,11 @@
   border-radius: var(--radius-s) var(--radius-s) 0 0;
 }
 
-.tag-tree-section-header:hover {
+.metagrouper-section-header:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-section-header::before {
+.metagrouper-section-header::before {
   content: "";
   display: inline-block;
   width: 0;
@@ -325,11 +325,11 @@
   transition: transform 0.1s ease;
 }
 
-.tag-tree-collapsible-section[open] > .tag-tree-section-header::before {
+.metagrouper-collapsible-section[open] > .metagrouper-section-header::before {
   transform: rotate(90deg);
 }
 
-.tag-tree-section-content {
+.metagrouper-section-content {
   padding: var(--size-4-2) var(--size-4-3);
 }
 
@@ -343,32 +343,32 @@
 }
 
 /* Level header with controls */
-.tag-tree-level-header {
+.metagrouper-level-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--size-4-2);
 }
 
-.tag-tree-level-title {
+.metagrouper-level-title {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tag-tree-level-controls {
+.metagrouper-level-controls {
   display: flex;
   gap: var(--size-2-1);
   margin-left: auto;
   flex-shrink: 0;
 }
 
-.tag-tree-level-controls .clickable-icon {
+.metagrouper-level-controls .clickable-icon {
   padding: var(--size-2-1);
 }
 
-.tag-tree-level-controls .clickable-icon.is-disabled {
+.metagrouper-level-controls .clickable-icon.is-disabled {
   opacity: 0.3;
   cursor: not-allowed;
 }
@@ -378,7 +378,7 @@
    ======================================== */
 
 /* Main tree container */
-.tag-tree-container {
+.metagrouper-container {
   padding: 0;
   font-size: var(--font-ui-small);
   color: var(--text-normal);
@@ -480,7 +480,7 @@
 }
 
 /* Loading indicator */
-.tag-tree-loading {
+.metagrouper-loading {
   padding: var(--size-4-4);
   text-align: center;
   color: var(--text-muted);
@@ -488,7 +488,7 @@
 }
 
 /* Error message */
-.tag-tree-error {
+.metagrouper-error {
   padding: var(--size-4-4);
   color: var(--text-error);
   font-size: var(--font-ui-small);
@@ -548,7 +548,7 @@
 }
 
 /* Tree content container (below toolbar) */
-.tag-tree-content {
+.metagrouper-content {
   flex: 1;
   overflow-y: auto;
 }
@@ -558,7 +558,7 @@
    ======================================== */
 
 /* Codeblock container */
-.tag-tree-codeblock {
+.metagrouper-codeblock {
   padding: var(--size-4-3);
   margin: var(--size-4-2) 0;
   background-color: var(--background-primary-alt);
@@ -570,64 +570,64 @@
 }
 
 /* Codeblock tree container (nested inside codeblock) */
-.tag-tree-codeblock .tag-tree-container {
+.metagrouper-codeblock .metagrouper-container {
   padding: 0;
 }
 
 /* Non-interactive mode styles */
-.tag-tree-codeblock .tag-tree-non-interactive .tree-node-header {
+.metagrouper-codeblock .metagrouper-non-interactive .tree-node-header {
   cursor: default;
 }
 
-.tag-tree-codeblock .tag-tree-non-interactive .tree-node-header:hover {
+.metagrouper-codeblock .metagrouper-non-interactive .tree-node-header:hover {
   background-color: transparent;
 }
 
-.tag-tree-codeblock .tag-tree-non-interactive .tree-collapse-icon {
+.metagrouper-codeblock .metagrouper-non-interactive .tree-collapse-icon {
   pointer-events: none;
   opacity: 0.5;
 }
 
 /* List format styles */
-.tag-tree-list {
+.metagrouper-list {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
 
-.tag-tree-list ul {
+.metagrouper-list ul {
   list-style: none;
   padding-left: 20px;
   margin: 4px 0;
 }
 
-.tag-tree-list li {
+.metagrouper-list li {
   margin: 4px 0;
   line-height: 1.6;
 }
 
-.tag-tree-list .tag-tree-node-name {
+.metagrouper-list .metagrouper-node-name {
   color: var(--text-normal);
 }
 
-.tag-tree-list .tag-tree-count {
+.metagrouper-list .metagrouper-count {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
   margin-left: 4px;
 }
 
-.tag-tree-list .internal-link {
+.metagrouper-list .internal-link {
   color: var(--text-accent);
   text-decoration: none;
   cursor: pointer;
 }
 
-.tag-tree-list .internal-link:hover {
+.metagrouper-list .internal-link:hover {
   text-decoration: underline;
 }
 
 /* Codeblock error message */
-.tag-tree-codeblock-error {
+.metagrouper-codeblock-error {
   padding: var(--size-4-3);
   margin: var(--size-4-2) 0;
   background-color: var(--background-modifier-error);
@@ -637,50 +637,50 @@
   font-size: var(--font-ui-small);
 }
 
-.tag-tree-codeblock-error strong {
+.metagrouper-codeblock-error strong {
   font-weight: var(--font-semibold);
 }
 
 /* Compact mode for codeblocks (less padding) */
-.tag-tree-codeblock[data-format="list"] {
+.metagrouper-codeblock[data-format="list"] {
   padding: var(--size-4-2) var(--size-4-3);
 }
 
 /* Interactive mode hover effects */
-.tag-tree-codeblock[data-interactive="true"] .tree-node-header:hover {
+.metagrouper-codeblock[data-interactive="true"] .tree-node-header:hover {
   background-color: var(--background-modifier-hover);
 }
 
 /* Non-interactive mode - no hover effects */
-.tag-tree-codeblock[data-interactive="false"] .tree-node-header {
+.metagrouper-codeblock[data-interactive="false"] .tree-node-header {
   cursor: default;
 }
 
-.tag-tree-codeblock[data-interactive="false"] .tree-node-header:hover {
+.metagrouper-codeblock[data-interactive="false"] .tree-node-header:hover {
   background-color: transparent;
 }
 
 /* Scrollbar styling for codeblock trees */
-.tag-tree-codeblock::-webkit-scrollbar {
+.metagrouper-codeblock::-webkit-scrollbar {
   width: var(--scrollbar-thin-width);
 }
 
-.tag-tree-codeblock::-webkit-scrollbar-track {
+.metagrouper-codeblock::-webkit-scrollbar-track {
   background: var(--background-primary);
 }
 
-.tag-tree-codeblock::-webkit-scrollbar-thumb {
+.metagrouper-codeblock::-webkit-scrollbar-thumb {
   background: var(--background-modifier-border);
   border-radius: var(--radius-s);
 }
 
-.tag-tree-codeblock::-webkit-scrollbar-thumb:hover {
+.metagrouper-codeblock::-webkit-scrollbar-thumb:hover {
   background: var(--background-modifier-border-hover);
 }
 
 /* Responsive adjustments for codeblocks */
 @media (max-width: 768px) {
-  .tag-tree-codeblock {
+  .metagrouper-codeblock {
     padding: var(--size-4-2);
     max-height: 400px;
   }
@@ -691,177 +691,177 @@
    ======================================== */
 
 /* Background mode - use CSS variables set by view.ts */
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-0-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-1-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-2-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-3-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-4-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-5-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header {
   background-color: var(--level-6-color);
 }
 
 /* Hover effect for background mode */
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header:hover {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header:hover {
   filter: brightness(0.95);
 }
 
 /* Files should NOT get level colors - only custom file color */
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-node-type="file"] .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-node-type="file"] .tree-node-header {
   background-color: transparent;
 }
 
 /* File color in background mode (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="background"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-header {
+.metagrouper-content[data-level-color-mode="background"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-header {
   background-color: var(--file-color);
 }
 
 /* Text mode */
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-0-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-1-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-2-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-3-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-4-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-5-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   color: var(--level-6-color);
 }
 
 /* Files should NOT get level colors - use default text color */
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-node-type="file"] .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-node-type="file"] .tree-node-name {
   color: var(--text-normal);
 }
 
 /* File color for file names (only when explicitly set) */
-.tag-tree-content[data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name {
+.metagrouper-content[data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name {
   color: var(--file-color);
 }
 
 /* File color in text mode (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="text"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name {
+.metagrouper-content[data-level-color-mode="text"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name {
   color: var(--file-color);
 }
 
 /* Left border mode */
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-0-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-1-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-2-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-3-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-4-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-5-color);
   padding-left: 5px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header {
   border-left: 3px solid var(--level-6-color);
   padding-left: 5px;
 }
 
 /* Files should NOT get level colors - only custom file color */
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-node-type="file"] .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-node-type="file"] .tree-node-header {
   border-left: none;
 }
 
 /* File color in border mode (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="left-border"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-header {
+.metagrouper-content[data-level-color-mode="left-border"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-header {
   border-left: 3px solid var(--file-color);
   padding-left: 5px;
 }
 
 /* Icon mode */
-.tag-tree-content[data-has-file-color] .tree-node[data-node-type="file"] .tree-node-icon {
+.metagrouper-content[data-has-file-color] .tree-node[data-node-type="file"] .tree-node-icon {
   color: var(--file-color) !important;
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="0"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-0-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="1"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-1-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="2"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-2-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="3"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-3-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="4"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-4-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="5"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-5-color);
 }
-.tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index="6"]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   color: var(--level-6-color);
 }
 
 
 /* File color in icon mode (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="icon"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-icon {
+.metagrouper-content[data-level-color-mode="icon"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-icon {
   color: var(--file-color);
 }
 
 /* File color independent of level color mode (only when explicitly set) */
-.tag-tree-content[data-has-file-color] .tree-node[data-node-type="file"] > .tree-node-header > .tree-node-icon {
+.metagrouper-content[data-has-file-color] .tree-node[data-node-type="file"] > .tree-node-header > .tree-node-icon {
   color: var(--file-color) !important;
 }
 
 /* Dark theme adjustments */
-.theme-dark .tag-tree-content[data-level-color-mode="text"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
+.theme-dark .metagrouper-content[data-level-color-mode="text"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header > .tree-node-name {
   filter: brightness(1.8) saturate(1.2);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header {
+.theme-dark .metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header {
   filter: brightness(0.4) saturate(1.2);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header:hover {
+.theme-dark .metagrouper-content[data-level-color-mode="background"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header:hover {
   filter: brightness(0.5) saturate(1.2);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header {
+.theme-dark .metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header {
   filter: brightness(1.5);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="icon"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
+.theme-dark .metagrouper-content[data-level-color-mode="icon"] .tree-node[data-level-index]:not([data-node-type="file"]) > .tree-node-header > .tree-node-icon {
   filter: brightness(1.8) saturate(1.2);
 }
 
@@ -870,12 +870,12 @@
    ======================================== */
 
 /* Filter groups container */
-.tag-tree-filter-groups {
+.metagrouper-filter-groups {
   margin-top: var(--size-4-3);
 }
 
 /* Individual filter group */
-.tag-tree-filter-group {
+.metagrouper-filter-group {
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
   padding: var(--size-4-3);
@@ -883,20 +883,20 @@
   background-color: var(--background-secondary);
 }
 
-.tag-tree-filter-group-header {
+.metagrouper-filter-group-header {
   margin-bottom: var(--size-4-3);
   border-bottom: 1px solid var(--background-modifier-border);
   padding-bottom: var(--size-4-2);
 }
 
 /* Filter list */
-.tag-tree-filter-list {
+.metagrouper-filter-list {
   margin-left: var(--size-4-2);
   margin-top: var(--size-4-2);
 }
 
 /* Individual filter item */
-.tag-tree-filter-item {
+.metagrouper-filter-item {
   margin-bottom: var(--size-4-2);
   padding: var(--size-4-2);
   background-color: var(--background-primary);
@@ -905,7 +905,7 @@
 }
 
 /* Filter item setting - make it wrap properly */
-.tag-tree-filter-item .setting-item {
+.metagrouper-filter-item .setting-item {
   border: none;
   padding: 0;
   display: flex;
@@ -914,13 +914,13 @@
   gap: var(--size-4-2);
 }
 
-.tag-tree-filter-item .setting-item-info {
+.metagrouper-filter-item .setting-item-info {
   flex: 0 0 auto;
   min-width: 100px;
   max-width: 150px;
 }
 
-.tag-tree-filter-item .setting-item-control {
+.metagrouper-filter-item .setting-item-control {
   flex: 1 1 auto;
   display: flex;
   flex-wrap: wrap;
@@ -930,33 +930,33 @@
 }
 
 /* Make input fields responsive */
-.tag-tree-filter-item .setting-item-control input[type="text"] {
+.metagrouper-filter-item .setting-item-control input[type="text"] {
   min-width: 120px;
   max-width: 200px;
   flex: 1 1 auto;
 }
 
-.tag-tree-filter-item .setting-item-control select {
+.metagrouper-filter-item .setting-item-control select {
   min-width: 100px;
   flex: 0 1 auto;
 }
 
 /* NOT label */
-.tag-tree-filter-not-label {
+.metagrouper-filter-not-label {
   font-weight: 600;
   color: var(--text-accent);
   margin-left: var(--size-2-1);
 }
 
 /* Filter type selection modal */
-.tag-tree-filter-type-buttons {
+.metagrouper-filter-type-buttons {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: var(--size-4-3);
   margin-top: var(--size-4-4);
 }
 
-.tag-tree-filter-type-button {
+.metagrouper-filter-type-button {
   padding: var(--size-4-4);
   text-align: left;
   border: 1px solid var(--background-modifier-border);
@@ -968,16 +968,16 @@
   flex-direction: column;
 }
 
-.tag-tree-filter-type-button:hover {
+.metagrouper-filter-type-button:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-filter-type-button .svg-icon {
+.metagrouper-filter-type-button .svg-icon {
   margin-bottom: var(--size-4-2);
   color: var(--text-muted);
 }
 
-.tag-tree-filter-type-button .setting-item-description {
+.metagrouper-filter-type-button .setting-item-description {
   margin: 0;
   font-size: var(--font-ui-smaller);
   line-height: 1.4;
@@ -987,7 +987,7 @@
  * Toolbar filter explanation
  * ========================================================================== */
 
-.tag-tree-filter-explanation {
+.metagrouper-filter-explanation {
   margin-top: var(--size-4-2);
   margin-bottom: var(--size-4-2);
   border: 1px solid var(--background-modifier-border);
@@ -996,50 +996,50 @@
   background-color: var(--background-secondary);
 }
 
-.tag-tree-filter-explanation summary {
+.metagrouper-filter-explanation summary {
   padding: var(--size-4-2) var(--size-4-3);
   cursor: pointer;
   font-weight: 500;
   user-select: none;
 }
 
-.tag-tree-filter-explanation summary:hover {
+.metagrouper-filter-explanation summary:hover {
   background-color: var(--background-modifier-hover);
 }
 
-.tag-tree-filter-expression {
+.metagrouper-filter-expression {
   margin-bottom: var(--size-4-2);
   font-size: var(--font-ui-smaller);
   color: var(--text-muted);
 }
 
-.tag-tree-filter-explanation-content {
+.metagrouper-filter-explanation-content {
   padding: var(--size-4-2) var(--size-4-3);
   border-top: 1px solid var(--background-modifier-border);
   font-size: var(--font-ui-smaller);
 }
 
-.tag-tree-filter-explanation-mode {
+.metagrouper-filter-explanation-mode {
   margin-bottom: var(--size-4-2);
   font-weight: 500;
   color: var(--text-muted);
 }
 
-.tag-tree-filter-explanation-group {
+.metagrouper-filter-explanation-group {
   margin-bottom: var(--size-4-2);
 }
 
-.tag-tree-filter-explanation-group:last-child {
+.metagrouper-filter-explanation-group:last-child {
   margin-bottom: 0;
 }
 
-.tag-tree-filter-explanation-group ul {
+.metagrouper-filter-explanation-group ul {
   margin: var(--size-2-2) 0 0 var(--size-4-4);
   padding: 0;
   list-style-type: disc;
 }
 
-.tag-tree-filter-explanation-group li {
+.metagrouper-filter-explanation-group li {
   margin: var(--size-2-1) 0;
   color: var(--text-normal);
 }
@@ -1055,109 +1055,109 @@
 }
 
 /* Text mode for flattened segments */
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="0"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="0"] {
   color: var(--level-0-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="1"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="1"] {
   color: var(--level-1-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="2"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="2"] {
   color: var(--level-2-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="3"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="3"] {
   color: var(--level-3-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="4"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="4"] {
   color: var(--level-4-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="5"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="5"] {
   color: var(--level-5-color);
 }
-.tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="6"] {
+.metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index="6"] {
   color: var(--level-6-color);
 }
 
 /* Files should NOT get level colors in text mode for flattened segments */
-.tag-tree-content[data-level-color-mode="text"] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="text"] .tree-node[data-node-type="file"] .tree-node-name-segment {
   color: var(--text-normal);
 }
 
 /* File color in text mode for flattened segments (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="text"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="text"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
   color: var(--file-color);
 }
 
 /* Background mode for flattened segments */
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="0"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="0"] {
   background-color: var(--level-0-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="1"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="1"] {
   background-color: var(--level-1-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="2"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="2"] {
   background-color: var(--level-2-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="3"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="3"] {
   background-color: var(--level-3-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="4"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="4"] {
   background-color: var(--level-4-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="5"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="5"] {
   background-color: var(--level-5-color);
 }
-.tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="6"] {
+.metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index="6"] {
   background-color: var(--level-6-color);
 }
 
 /* Files should NOT get level colors in background mode for flattened segments */
-.tag-tree-content[data-level-color-mode="background"] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="background"] .tree-node[data-node-type="file"] .tree-node-name-segment {
   background-color: transparent;
 }
 
 /* File color in background mode for flattened segments (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="background"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="background"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
   background-color: var(--file-color);
 }
 
 /* Left border mode for flattened segments */
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="0"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="0"] {
   border-left: 3px solid var(--level-0-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="1"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="1"] {
   border-left: 3px solid var(--level-1-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="2"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="2"] {
   border-left: 3px solid var(--level-2-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="3"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="3"] {
   border-left: 3px solid var(--level-3-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="4"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="4"] {
   border-left: 3px solid var(--level-4-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="5"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="5"] {
   border-left: 3px solid var(--level-5-color);
   padding-left: 4px;
 }
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="6"] {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index="6"] {
   border-left: 3px solid var(--level-6-color);
   padding-left: 4px;
 }
 
 /* Files should NOT get level colors in left-border mode for flattened segments */
-.tag-tree-content[data-level-color-mode="left-border"] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="left-border"] .tree-node[data-node-type="file"] .tree-node-name-segment {
   border-left: none;
   padding-left: 0;
 }
 
 /* File color in left-border mode for flattened segments (only when explicitly set) */
-.tag-tree-content[data-level-color-mode="left-border"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
+.metagrouper-content[data-level-color-mode="left-border"][data-has-file-color] .tree-node[data-node-type="file"] .tree-node-name-segment {
   border-left: 3px solid var(--file-color);
   padding-left: 4px;
 }
@@ -1165,19 +1165,19 @@
 /* Icon mode for flattened segments - icons are already colored above */
 
 /* Dark theme adjustments for flattened segments */
-.theme-dark .tag-tree-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index] {
+.theme-dark .metagrouper-content[data-level-color-mode="text"] .tree-node-name-segment[data-level-index] {
   filter: brightness(1.8) saturate(1.2);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index] {
+.theme-dark .metagrouper-content[data-level-color-mode="background"] .tree-node-name-segment[data-level-index] {
   filter: brightness(0.4) saturate(1.2);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index] {
+.theme-dark .metagrouper-content[data-level-color-mode="left-border"] .tree-node-name-segment[data-level-index] {
   filter: brightness(1.5);
 }
 
-.theme-dark .tag-tree-content[data-level-color-mode="icon"] .tree-node-name-segment[data-level-index] {
+.theme-dark .metagrouper-content[data-level-color-mode="icon"] .tree-node-name-segment[data-level-index] {
   filter: brightness(1.8) saturate(1.2);
 }
 
@@ -1204,11 +1204,11 @@
 }
 
 /* Only show segment icons when in icon color mode */
-.tag-tree-content[data-level-color-mode="icon"] .tree-node-segment-icon {
+.metagrouper-content[data-level-color-mode="icon"] .tree-node-segment-icon {
   display: inline-block;
 }
 
-.tag-tree-content:not([data-level-color-mode="icon"]) .tree-node-segment-icon {
+.metagrouper-content:not([data-level-color-mode="icon"]) .tree-node-segment-icon {
   display: none;
 }
 

@@ -1,14 +1,14 @@
-# Tag Tree Plugin — Detailed Implementation Plan
+# MetaGrouper Plugin — Detailed Implementation Plan
 
 ## Overview
 
-This document provides a comprehensive implementation plan for the Obsidian Tag Tree plugin, building upon the vision outlined in [`vision.md`](docs/vision.md). The plan is organized into 7 phases, each containing specific technical tasks with architectural guidance.
+This document provides a comprehensive implementation plan for the Obsidian MetaGrouper plugin, building upon the vision outlined in [`vision.md`](docs/vision.md). The plan is organized into 7 phases, each containing specific technical tasks with architectural guidance.
 
 ## Current State
 
 **Existing Code:**
 - Basic plugin scaffolding in [`main.ts`](src/main.ts:1)
-- Skeleton [`TagTreeView`](src/view.ts:5) with placeholder content
+- Skeleton [`MetaGrouperView`](src/view.ts:5) with placeholder content
 - Build configuration (Rollup + TypeScript)
 - Testing setup (Vitest configured but no tests yet)
 
@@ -158,9 +158,9 @@ class TreeComponent {
 
 **File:** Update [`src/view.ts`](src/view.ts:5)
 
-**Changes to TagTreeView:**
+**Changes to MetaGrouperView:**
 ```typescript
-export class TagTreeView extends ItemView {
+export class MetaGrouperView extends ItemView {
   private indexer: VaultIndexer;
   private treeBuilder: TreeBuilder;
   private treeComponent: TreeComponent;
@@ -249,7 +249,7 @@ class TreeComponent {
 
 **Integration:**
 ```typescript
-class TagTreeView {
+class MetaGrouperView {
   private toolbar: TreeToolbar;
   
   renderToolbar(container: HTMLElement): void {
@@ -504,7 +504,7 @@ class TreeToolbar {
 
 **Integration:**
 ```typescript
-class TagTreeView extends ItemView {
+class MetaGrouperView extends ItemView {
   switchView(viewName: string): void {
     const config = this.plugin.settings.savedViews.find(v => v.name === viewName);
     if (!config) return;
@@ -541,7 +541,7 @@ class TagTreePlugin extends Plugin {
         callback: () => {
           const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
           leaves.forEach(leaf => {
-            const view = leaf.view as TagTreeView;
+            const view = leaf.view as MetaGrouperView;
             view.switchView(view.name);
           });
         }
@@ -568,12 +568,12 @@ class TagTreePlugin extends Plugin {
     // ... existing code ...
     
     this.registerMarkdownCodeBlockProcessor(
-      'tagtree',
-      this.processTagTreeBlock.bind(this)
+      'metagrouper',
+      this.processMetaGrouperBlock.bind(this)
     );
   }
   
-  async processTagTreeBlock(
+  async processMetaGrouperBlock(
     source: string,
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext
@@ -621,7 +621,7 @@ interface CodeblockConfig {
   expanded?: number;
 }
 
-class TagTreeCodeblockProcessor {
+class MetaGrouperCodeblockProcessor {
   parseConfig(source: string): CodeblockConfig {
     // Parse YAML-like syntax
     // Support both view references and inline configs
@@ -729,7 +729,7 @@ class VaultIndexer {
 
 **Update TreeView to React:**
 ```typescript
-class TagTreeView {
+class MetaGrouperView {
   async onOpen() {
     // ... initialize ...
     
@@ -921,7 +921,7 @@ class TreeComponent {
 ```mermaid
 graph TB
     subgraph "User Interface Layer"
-        Sidebar[TagTreeView Sidebar]
+        Sidebar[MetaGrouperView Sidebar]
         Codeblock[Codeblock Renderer]
         Settings[Settings Tab]
         Toolbar[Tree Toolbar]

@@ -1,6 +1,6 @@
-# Tag Tree View - User Guide
+# MetaGrouper - User Guide
 
-Welcome to the comprehensive user guide for the Tag Tree View plugin! This guide will walk you through all features and provide detailed instructions for getting the most out of the plugin.
+Welcome to the comprehensive user guide for the MetaGrouper plugin! This guide will walk you through all features and provide detailed instructions for getting the most out of the plugin.
 
 ## Table of Contents
 
@@ -18,17 +18,17 @@ Welcome to the comprehensive user guide for the Tag Tree View plugin! This guide
 
 ## Getting Started
 
-### Opening the Tag Tree View
+### Opening the MetaGrouper View
 
-There are several ways to open the Tag Tree View:
+There are several ways to open the MetaGrouper view:
 
 1. **Sidebar Icon**: Click the tree icon (🌳) in the left sidebar
-2. **Command Palette**: Press `Ctrl/Cmd + P` and search for "Tag Tree: Open tag tree view"
-3. **Ribbon**: Click the Tag Tree icon in the ribbon (if enabled)
+2. **Command Palette**: Press `Ctrl/Cmd + P` and search for "MetaGrouper: Open view"
+3. **Ribbon**: Click the MetaGrouper icon in the ribbon (if enabled)
 
 ### First Look
 
-When you first open the Tag Tree View, you'll see:
+When you first open the MetaGrouper view, you'll see:
 
 - **Toolbar**: At the top with view selection, sorting, and expansion controls
 - **Tree Container**: The main area displaying your tag hierarchy
@@ -155,7 +155,7 @@ Custom views allow you to organize notes in different ways beyond simple tag hie
 ### Accessing View Configuration
 
 1. Open Obsidian Settings (`Ctrl/Cmd + ,`)
-2. Navigate to "Tag Tree View" in the plugin settings
+2. Navigate to "MetaGrouper" in the plugin settings
 3. You'll see a list of saved views and controls to add/edit/delete
 
 ### View Configuration Basics
@@ -343,7 +343,7 @@ You can embed tree views directly in your notes using codeblocks.
 ### Basic Syntax
 
 ````markdown
-```tagtree
+```metagrouper
 view: "View Name"
 ```
 ````
@@ -355,7 +355,7 @@ This references a saved view and displays it inline.
 Define a tree structure without creating a saved view:
 
 ````markdown
-```tagtree
+```metagrouper
 root: #project
 levels:
   - tag: "project"
@@ -418,7 +418,7 @@ Simple nested list:
 ````markdown
 # Project Status
 
-```tagtree
+```metagrouper
 view: "Projects Dashboard"
 expanded: 2
 ```
@@ -429,7 +429,7 @@ expanded: 2
 ````markdown
 # My Publications
 
-```tagtree
+```metagrouper
 root: #research/papers
 levels:
   - property: "year"
@@ -444,7 +444,7 @@ expanded: all
 ````markdown
 # Note Index
 
-```tagtree
+```metagrouper
 root: #moc
 levels:
   - tag: "moc"
@@ -457,7 +457,7 @@ format: list
 For read-only displays:
 
 ````markdown
-```tagtree
+```metagrouper
 view: "All Tags"
 interactive: false
 ```
@@ -721,7 +721,7 @@ Quick reference for all keyboard shortcuts:
 
 ## Next Steps
 
-Now that you're familiar with the Tag Tree View plugin:
+Now that you're familiar with the MetaGrouper plugin:
 
 1. **Create Your First Custom View**: Organize your notes by project or topic
 2. **Experiment with Hierarchies**: Try different combinations of tags and properties

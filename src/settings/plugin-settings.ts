@@ -7,7 +7,7 @@ import {
 /**
  * Plugin settings schema
  */
-export interface TagTreeSettings {
+export interface MetaGrouperSettings {
   /** All saved view configurations */
   savedViews: HierarchyConfig[];
 
@@ -36,7 +36,7 @@ export const DEFAULT_LEVEL_COLORS = [
 /**
  * Default plugin settings
  */
-export const DEFAULT_SETTINGS: TagTreeSettings = {
+export const DEFAULT_SETTINGS: MetaGrouperSettings = {
   // Initialize with example configurations
   savedViews: [...EXAMPLE_HIERARCHY_CONFIGS],
 
@@ -53,7 +53,7 @@ export const DEFAULT_SETTINGS: TagTreeSettings = {
  * Migrate settings from old schema to new schema
  * Handles backward compatibility when updating the plugin
  */
-export function migrateSettings(settings: TagTreeSettings): void {
+export function migrateSettings(settings: MetaGrouperSettings): void {
   // Migrate view configs
   settings.savedViews.forEach((view: any) => {
     // Old sortMode property → new defaultFileSortMode and defaultNodeSortMode

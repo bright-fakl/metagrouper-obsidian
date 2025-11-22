@@ -77,13 +77,13 @@ export class FilterEvaluator {
     const filterResults = new Map<string, boolean>();
     for (const labeledFilter of enabledFilters) {
       const result = this.evaluateFilter(file, labeledFilter.filter);
-      console.log(`[TagTree] Filter ${labeledFilter.label} (${labeledFilter.filter.type}): ${result}, negate: ${labeledFilter.filter.negate}, file: ${file.basename}`);
+      console.log(`[MetaGrouper] Filter ${labeledFilter.label} (${labeledFilter.filter.type}): ${result}, negate: ${labeledFilter.filter.negate}, file: ${file.basename}`);
       filterResults.set(labeledFilter.label, result);
     }
 
     // Evaluate expression with filter results
     const finalResult = this.expressionEvaluator.evaluate(parseResult.ast, filterResults);
-    console.log(`[TagTree] Expression "${expression}" result: ${finalResult}, file: ${file.basename}`);
+    console.log(`[MetaGrouper] Expression "${expression}" result: ${finalResult}, file: ${file.basename}`);
     return finalResult;
   }
 
@@ -94,7 +94,7 @@ export class FilterEvaluator {
     // Clean up legacy negate field from filters that don't use it
     // Only PropertyExistsFilter should have negate field
     if (filter.type !== "property-exists" && filter.negate !== undefined) {
-      console.log(`[TagTree] Cleaning up legacy negate field from ${filter.type} filter`);
+      console.log(`[MetaGrouper] Cleaning up legacy negate field from ${filter.type} filter`);
       delete filter.negate;
     }
 
@@ -132,7 +132,7 @@ export class FilterEvaluator {
           result = true;
       }
     } catch (error) {
-      console.error(`[TagTree] Error evaluating filter ${filter.id}:`, error);
+      console.error(`[MetaGrouper] Error evaluating filter ${filter.id}:`, error);
       result = false; // Errors = no match
     }
 

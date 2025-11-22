@@ -1,4 +1,4 @@
-# Obsidian Tag Tree Plugin — Project Vision & Implementation Plan
+# Obsidian MetaGrouper Plugin — Project Vision & Implementation Plan
 
 ## 1. Project Vision
 
@@ -58,7 +58,7 @@ Users can create and save multiple tree configurations, each with:
 * **Codeblock:** static or semi-interactive nested lists generated with:
 
   ````
-  ```tagtree
+  ```metagrouper
   root: #research
   levels:
     - tag: "#research"
@@ -110,7 +110,7 @@ interface TreeNode {
 }
 ```
 
-### **3.3 TagTreeView (Sidebar)**
+### **3.3 MetaGrouperView (Sidebar)**
 
 Responsible for:
 
@@ -127,7 +127,7 @@ Responsible for:
 Generates a nested list inside notes based on:
 
 ````
-```tagtree
+```metagrouper
 view: "Project Overview"
 ```
 ````
@@ -169,7 +169,7 @@ This plan outlines recommended development stages.
 3. Add commands for quick switching
 
 ### **Phase 5 — Markdown Codeblock Rendering**
-1. Register the `tagtree` codeblock processor
+1. Register the `metagrouper` codeblock processor
 2. Support parameters or view references
 3. Render nested lists with `<ul>`/`<li>` or `<details>` blocks
 

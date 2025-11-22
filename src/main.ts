@@ -1,15 +1,15 @@
 import { App, Plugin, PluginManifest, WorkspaceLeaf, MarkdownPostProcessorContext } from "obsidian";
-import { TagTreeView, VIEW_TYPE_TAG_TREE } from "./view";
+import { MetaGrouperView, VIEW_TYPE_METAGROUPER } from "./view";
 import {
-  TagTreeSettings,
+  MetaGrouperSettings,
   DEFAULT_SETTINGS,
   migrateSettings,
 } from "./settings/plugin-settings";
-import { TagTreeSettingsTab } from "./settings/settings-tab";
-import { TagTreeCodeblockProcessor } from "./codeblock/codeblock-processor";
+import { MetaGrouperSettingsTab } from "./settings/settings-tab";
+import { MetaGrouperCodeblockProcessor } from "./codeblock/codeblock-processor";
 
-export default class TagTreePlugin extends Plugin {
-  settings!: TagTreeSettings;
+export default class MetaGrouperPlugin extends Plugin {
+  settings!: MetaGrouperSettings;
   private registeredViewCommands: Set<string> = new Set();
 
   async onload() {
@@ -17,21 +17,21 @@ export default class TagTreePlugin extends Plugin {
     await this.loadSettings();
 
     // Register settings tab
-    this.addSettingTab(new TagTreeSettingsTab(this.app, this));
+    this.addSettingTab(new MetaGrouperSettingsTab(this.app, this));
 
     this.registerView(
-      VIEW_TYPE_TAG_TREE,
-      (leaf: WorkspaceLeaf) => new TagTreeView(leaf, this)
+      VIEW_TYPE_METAGROUPER,
+      (leaf: WorkspaceLeaf) => new MetaGrouperView(leaf, this)
     );
 
-    this.addRibbonIcon("tree-deciduous", "Open Tag Tree", () => {
+    this.addRibbonIcon("tree-deciduous", "Open MetaGrouper", () => {
       this.activateView();
     });
 
     // Register command to open Tag Tree
     this.addCommand({
-      id: "open-tag-tree",
-      name: "Open Tag Tree",
+      id: "open-metagrouper",
+      name: "Open MetaGrouper",
       callback: () => {
         this.activateView();
       },
@@ -40,42 +40,42 @@ export default class TagTreePlugin extends Plugin {
     // Register dynamic commands for view switching
     this.registerViewCommands();
 
-    // Register markdown codeblock processor for tagtree blocks
+    // Register markdown codeblock processor for metagrouper blocks
     this.registerMarkdownCodeBlockProcessor(
-      "tagtree",
-      this.processTagTreeBlock.bind(this)
+      "metagrouper",
+      this.processMetaGrouperBlock.bind(this)
     );
   }
 
   /**
-   * Process tagtree codeblocks in markdown
+   * Process metagrouper codeblocks in markdown
    */
-  async processTagTreeBlock(
+  async processMetaGrouperBlock(
     source: string,
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext
   ): Promise<void> {
-    const processor = new TagTreeCodeblockProcessor(this.app, this);
+    const processor = new MetaGrouperCodeblockProcessor(this.app, this);
     await processor.render(source, el, ctx);
   }
 
   async onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_TAG_TREE);
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_METAGROUPER);
   }
 
   async activateView() {
-    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_METAGROUPER);
     if (leaves.length === 0) {
       const leaf = this.app.workspace.getRightLeaf(false);
       if (leaf) {
         await leaf.setViewState({
-          type: VIEW_TYPE_TAG_TREE,
+          type: VIEW_TYPE_METAGROUPER,
           active: true,
         });
       }
     }
     this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE)[0]
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_METAGROUPER)[0]
     );
   }
 
@@ -94,13 +94,13 @@ export default class TagTreePlugin extends Plugin {
   }
 
   /**
-   * Refresh all active Tag Tree views that are showing a specific view
+   * Refresh all active MetaGrouper views that are showing a specific view
    * @param viewName - The name of the view that was updated (optional, refreshes all if not specified)
    */
   refreshAllViews(viewName?: string) {
-    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_METAGROUPER);
     leaves.forEach((leaf) => {
-      const view = leaf.view as TagTreeView;
+      const view = leaf.view as MetaGrouperView;
       if (view && typeof view.refresh === "function") {
         if (!viewName || view.getCurrentViewName() === viewName) {
           view.refresh();
@@ -152,19 +152,19 @@ export default class TagTreePlugin extends Plugin {
   }
 
   /**
-   * Switch all active Tag Tree views to a specific view
+   * Switch all active MetaGrouper views to a specific view
    * @param viewName - The name of the view to switch to
    */
   private switchToView(viewName: string): void {
-    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
+    const leaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_METAGROUPER);
 
     if (leaves.length === 0) {
-      // No Tag Tree views open, open one and switch to the view
+      // No MetaGrouper views open, open one and switch to the view
       this.activateView().then(() => {
         // After activating, switch to the requested view
-        const newLeaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_TAG_TREE);
+        const newLeaves = this.app.workspace.getLeavesOfType(VIEW_TYPE_METAGROUPER);
         newLeaves.forEach((leaf) => {
-          const view = leaf.view as TagTreeView;
+          const view = leaf.view as MetaGrouperView;
           if (view && typeof view.switchToView === "function") {
             view.switchToView(viewName);
           }
@@ -173,7 +173,7 @@ export default class TagTreePlugin extends Plugin {
     } else {
       // Switch all existing views
       leaves.forEach((leaf) => {
-        const view = leaf.view as TagTreeView;
+        const view = leaf.view as MetaGrouperView;
         if (view && typeof view.switchToView === "function") {
           view.switchToView(viewName);
         }

@@ -1,6 +1,6 @@
-# Tag Tree View - Examples and Use Cases
+# MetaGrouper - Examples and Use Cases
 
-This guide provides real-world examples and configurations for the Tag Tree View plugin. Use these as inspiration for organizing your own vault!
+This guide provides real-world examples and configurations for the MetaGrouper plugin. Use these as inspiration for organizing your own vault!
 
 ## Table of Contents
 
@@ -717,14 +717,14 @@ levels:
 
 This page provides an overview of all active projects.
 
-```tagtree
+```metagrouper
 view: "Projects Dashboard"
 expanded: 2
 ```
 
 ## Completed Projects
 
-```tagtree
+```metagrouper
 root: #project
 levels:
   - property: "status"
@@ -742,7 +742,7 @@ expanded: 1
 # My Dashboard
 
 ## Current Focus
-```tagtree
+```metagrouper
 root: #today
 levels:
   - property: "priority"
@@ -751,13 +751,13 @@ expanded: all
 ```
 
 ## Active Projects
-```tagtree
+```metagrouper
 view: "Projects Dashboard"
 expanded: 1
 ```
 
 ## Upcoming Meetings
-```tagtree
+```metagrouper
 root: #meeting
 levels:
   - property: "date"
@@ -774,7 +774,7 @@ expanded: 2
 # Reading List
 
 ## Currently Reading
-```tagtree
+```metagrouper
 root: #book
 levels:
   - property: "read-status"
@@ -799,7 +799,7 @@ Completed this year: 24
 # Quick Reference
 
 ## Project Tags
-```tagtree
+```metagrouper
 root: #project
 levels:
   - tag: "project"
@@ -827,7 +827,7 @@ interactive: false
 ```markdown
 # Research Status
 
-```tagtree
+```metagrouper
 root: #research/paper
 levels:
   - property: "field"

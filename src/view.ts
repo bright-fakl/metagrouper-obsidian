@@ -9,16 +9,16 @@ import { HierarchyConfig } from "./types/hierarchy-config";
 import { SearchQueryBuilder } from "./utils/search-query-builder";
 import { ObsidianSearch } from "./utils/obsidian-search";
 import { TreeNode } from "./types/tree-node";
-import type TagTreePlugin from "./main";
+import type MetaGrouperPlugin from "./main";
 
-export const VIEW_TYPE_TAG_TREE = "tag-tree-view";
+export const VIEW_TYPE_METAGROUPER = "metagrouper-view";
 
-export class TagTreeView extends ItemView {
+export class MetaGrouperView extends ItemView {
   private indexer!: VaultIndexer;
   private treeBuilder!: TreeBuilder;
   private treeComponent!: TreeComponent;
   private toolbar!: TreeToolbar;
-  private plugin: TagTreePlugin;
+  private plugin: MetaGrouperPlugin;
   private obsidianSearch!: ObsidianSearch;
 
   // Per-instance state
@@ -29,7 +29,7 @@ export class TagTreeView extends ItemView {
   // Working copy of view config (with toolbar filter modifications)
   private workingViewConfig: HierarchyConfig | null = null;
 
-  constructor(leaf: WorkspaceLeaf, plugin: TagTreePlugin) {
+  constructor(leaf: WorkspaceLeaf, plugin: MetaGrouperPlugin) {
     super(leaf);
     this.plugin = plugin;
     // Initialize with default view
@@ -37,11 +37,11 @@ export class TagTreeView extends ItemView {
   }
 
   getViewType() {
-    return VIEW_TYPE_TAG_TREE;
+    return VIEW_TYPE_METAGROUPER;
   }
 
   getDisplayText() {
-    return "Tag Tree";
+    return "MetaGrouper";
   }
 
   getIcon() {
@@ -78,11 +78,11 @@ export class TagTreeView extends ItemView {
   async onOpen() {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.addClass("tag-tree-view-content");
+    container.addClass("metagrouper-view-content");
 
     // Create a loading indicator
-    const loadingEl = container.createDiv("tag-tree-loading");
-    loadingEl.textContent = "Loading tag tree...";
+    const loadingEl = container.createDiv("metagrouper-loading");
+    loadingEl.textContent = "Loading metadata index...";
 
     try {
       // Initialize indexer
@@ -116,7 +116,7 @@ export class TagTreeView extends ItemView {
       this.restoreViewState();
 
       // Create and render toolbar
-      const toolbarContainer = container.createDiv("tag-tree-nav-header");
+      const toolbarContainer = container.createDiv("metagrouper-nav-header");
 
       // Get current display mode for toolbar initialization
       const viewState = this.plugin.settings.viewStates[this.currentViewName];
@@ -172,7 +172,7 @@ export class TagTreeView extends ItemView {
       this.toolbar.render(toolbarContainer);
 
       // Create tree container
-      const treeContainer = container.createDiv("tag-tree-content");
+      const treeContainer = container.createDiv("metagrouper-content");
 
       // Build and render tree based on current view
       this.buildAndRenderTree(treeContainer);
@@ -184,11 +184,11 @@ export class TagTreeView extends ItemView {
         })
       );
     } catch (error) {
-      console.error("[TagTree] Error initializing tag tree view:", error);
+      console.error("[MetaGrouper] Error initializing metagrouper view:", error);
       loadingEl.remove();
       const errorMessage = error instanceof Error ? error.message : String(error);
-      container.createDiv("tag-tree-error", (el) => {
-        el.textContent = `Error loading tag tree: ${errorMessage}`;
+      container.createDiv("metagrouper-error", (el) => {
+        el.textContent = `Error loading MetaGrouper: ${errorMessage}`;
       });
     }
   }
@@ -230,7 +230,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild and re-render tree (will now use the updated ViewState)
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -251,7 +251,7 @@ export class TagTreeView extends ItemView {
     // Get the level index from node metadata
     const levelIndex = node.metadata?.levelIndex;
     if (levelIndex === undefined) {
-      console.warn("[TagTree] Cannot change sort mode: node has no levelIndex", node);
+      console.warn("[MetaGrouper] Cannot change sort mode: node has no levelIndex", node);
       return;
     }
 
@@ -262,7 +262,7 @@ export class TagTreeView extends ItemView {
 
     if (!viewConfig) {
       console.error(
-        `[TagTree] Cannot change sort mode: view "${this.currentViewName}" not found`
+        `[MetaGrouper] Cannot change sort mode: view "${this.currentViewName}" not found`
       );
       return;
     }
@@ -270,7 +270,7 @@ export class TagTreeView extends ItemView {
     // Check if level exists
     if (levelIndex >= viewConfig.levels.length) {
       console.warn(
-        `[TagTree] Cannot change sort mode: level ${levelIndex} does not exist in view config`
+        `[MetaGrouper] Cannot change sort mode: level ${levelIndex} does not exist in view config`
       );
       return;
     }
@@ -283,7 +283,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild and re-render tree with new sort mode
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -332,7 +332,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild and re-render tree with new view
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -361,7 +361,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild and re-render tree with current filters
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -411,7 +411,7 @@ export class TagTreeView extends ItemView {
     // Rebuild tree if needed (when disabling, revert to saved filters)
     if (!enabled) {
       const container = this.containerEl.querySelector(
-        ".tag-tree-content"
+        ".metagrouper-content"
       ) as HTMLElement;
       if (container) {
         this.buildAndRenderTree(container);
@@ -432,7 +432,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild tree to apply new filter values
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -446,7 +446,7 @@ export class TagTreeView extends ItemView {
     // Get the current view configuration
     const currentViewConfig = this.getCurrentViewConfig();
     if (!currentViewConfig) {
-      console.error("[TagTreeView] Cannot open settings: no current view config");
+      console.error("[MetaGrouperView] Cannot open settings: no current view config");
       return;
     }
 
@@ -481,10 +481,10 @@ export class TagTreeView extends ItemView {
    * Handle display mode toggle from toolbar
    */
   private handleDisplayModeToggle(): void {
-    console.log("[TagTreeView] handleDisplayModeToggle called");
+    console.log("[MetaGrouperView] handleDisplayModeToggle called");
     
     if (!this.treeBuilder || !this.treeComponent) {
-      console.log("[TagTreeView] Missing treeBuilder or treeComponent");
+      console.log("[MetaGrouperView] Missing treeBuilder or treeComponent");
       return;
     }
 
@@ -505,7 +505,7 @@ export class TagTreeView extends ItemView {
     }
     
     const newMode = viewState.displayModeOverride;
-    console.log("[TagTreeView] Mode change:", { from: oldMode, to: newMode });
+    console.log("[MetaGrouperView] Mode change:", { from: oldMode, to: newMode });
 
     // Save settings IMMEDIATELY before rebuild to ensure mode is persisted
     this.plugin.saveSettings();
@@ -515,7 +515,7 @@ export class TagTreeView extends ItemView {
 
     // Rebuild and re-render tree with new display mode
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -524,7 +524,7 @@ export class TagTreeView extends ItemView {
     // Update toolbar display mode AFTER rebuilding tree to ensure button state is correct
     if (this.toolbar) {
       const finalMode = newMode ?? "tree";
-      console.log("[TagTreeView] Setting toolbar display mode to:", finalMode);
+      console.log("[MetaGrouperView] Setting toolbar display mode to:", finalMode);
       this.toolbar.setDisplayMode(finalMode);
     }
 
@@ -547,7 +547,7 @@ export class TagTreeView extends ItemView {
 
     if (!savedViewConfig) {
       // Fallback to default view if current view not found
-      container.createDiv("tag-tree-error", (el) => {
+      container.createDiv("metagrouper-error", (el) => {
         el.textContent = `View "${this.currentViewName}" not found. Please check your settings.`;
       });
       return;
@@ -665,7 +665,7 @@ export class TagTreeView extends ItemView {
 
     // Re-render with preserved state
     const container = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
     if (container) {
       this.buildAndRenderTree(container);
@@ -726,7 +726,7 @@ export class TagTreeView extends ItemView {
     }
 
     const treeContent = this.containerEl.querySelector(
-      ".tag-tree-content"
+      ".metagrouper-content"
     ) as HTMLElement;
 
     // Get existing state to preserve displayModeOverride
@@ -777,7 +777,7 @@ export class TagTreeView extends ItemView {
     if (state.scrollPosition !== undefined) {
       setTimeout(() => {
         const treeContent = this.containerEl.querySelector(
-          ".tag-tree-content"
+          ".metagrouper-content"
         ) as HTMLElement;
         if (treeContent) {
           treeContent.scrollTop = state.scrollPosition ?? 0;
@@ -798,7 +798,7 @@ export class TagTreeView extends ItemView {
 
     if (!viewConfig) {
       console.error(
-        `[TagTree] Cannot build search query: view "${this.currentViewName}" not found`
+        `[MetaGrouper] Cannot build search query: view "${this.currentViewName}" not found`
       );
       return;
     }
@@ -808,11 +808,11 @@ export class TagTreeView extends ItemView {
     const query = queryBuilder.buildQuery(node);
 
     if (!query) {
-      console.warn("[TagTree] No search query generated for node:", node);
+      console.warn("[MetaGrouper] No search query generated for node:", node);
       return;
     }
 
-    console.log("[TagTree] Opening search with query:", query);
+    console.log("[MetaGrouper] Opening search with query:", query);
 
     // Open the search view with the query
     this.obsidianSearch.openSearchWithQuery(query);

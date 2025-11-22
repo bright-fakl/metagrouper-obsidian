@@ -1,8 +1,8 @@
-# Tag Tree View Plugin for Obsidian
+# MetaGrouper Plugin for Obsidian
 
-A powerful Obsidian plugin that organizes your notes into hierarchical tree views based on nested tags and frontmatter properties.
+A powerful Obsidian plugin that organizes your notes into hierarchical tree views by performing sequential group-by operations on tags and frontmatter properties.
 
-![Tag Tree View](https://img.shields.io/badge/version-0.0.1-blue)
+![MetaGrouper](https://img.shields.io/badge/version-0.0.1-blue)
 ![Obsidian](https://img.shields.io/badge/obsidian-%3E%3D1.5.0-purple)
 
 ## 🌟 Features
@@ -34,7 +34,7 @@ A powerful Obsidian plugin that organizes your notes into hierarchical tree view
 Embed tree views directly in your notes:
 
 ````markdown
-```tagtree
+```metagrouper
 view: "My Custom View"
 ```
 ````
@@ -42,7 +42,7 @@ view: "My Custom View"
 Or define inline configurations:
 
 ````markdown
-```tagtree
+```metagrouper
 root: #project
 levels:
   - tag: "project"
@@ -68,12 +68,12 @@ expanded: 2
 ### From Obsidian Community Plugins (Coming Soon)
 1. Open Obsidian Settings
 2. Navigate to Community Plugins
-3. Search for "Tag Tree View"
+3. Search for "MetaGrouper"
 4. Click Install, then Enable
 
 ### Manual Installation
 1. Download the latest release from the [Releases](../../releases) page
-2. Extract the files to your vault's `.obsidian/plugins/tag-tree-view/` directory
+2. Extract the files to your vault's `.obsidian/plugins/metagrouper/` directory
 3. Reload Obsidian
 4. Enable the plugin in Settings → Community Plugins
 
@@ -95,15 +95,15 @@ npm run dev
 
 ## 🚀 Quick Start
 
-### 1. Open the Tag Tree View
+### 1. Open the MetaGrouper View
 - Click the tree icon in the left sidebar
-- Or use the command palette: `Tag Tree: Open tag tree view`
+- Or use the command palette: `MetaGrouper: Open view`
 
 ### 2. Basic Usage
 The plugin automatically indexes all tags in your vault and displays them in a tree structure. Click on any tag to expand/collapse it, or click on a file name to open it.
 
 ### 3. Create a Custom View
-1. Open Settings → Tag Tree View
+1. Open Settings → MetaGrouper
 2. Click "Add New View"
 3. Configure your hierarchy:
    - Add levels (tags or properties)
@@ -160,7 +160,7 @@ Organizes articles by category and publication status.
 
 ### Plugin Settings
 
-Access settings via Settings → Tag Tree View:
+Access settings via Settings → MetaGrouper:
 
 - **Saved Views**: Create and manage custom view configurations
 - **Default View**: Set which view opens on startup
@@ -260,7 +260,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🙏 Acknowledgments
 
 - Built for [Obsidian](https://obsidian.md/)
-- Inspired by the need for better tag organization in large vaults
+- Inspired by the need for flexible metadata-based organization in large vaults
 - Thanks to the Obsidian community for feedback and support
 
 ## 📮 Support
